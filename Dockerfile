@@ -18,18 +18,14 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 ARG VERSION=dev
 WORKDIR /app
 
-# Create data directories for volumes (using built-in 'app' user from .NET base image)
-RUN mkdir -p /app/data/uploads/saves /app/data/uploads/temp /app/data/keys && \
-    chown -R app:app /app/data
+# Create data directories for volumes
+RUN mkdir -p /app/data/uploads/saves /app/data/uploads/temp /app/data/keys
 
 # Copy published application
 COPY --from=build /app/publish .
 
-# Change ownership of app files to built-in 'app' user
-RUN chown -R app:app /app
-
-# Switch to non-root user (built-in 'app' user, UID 1654 in .NET images)
-USER app
+# Note: Running as root for compatibility with mounted volumes on systems like Unraid
+# The application will create necessary directories at runtime
 
 # Expose port
 EXPOSE 8080
