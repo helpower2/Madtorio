@@ -89,6 +89,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddScoped<Madtorio.Services.ISaveFileService, Madtorio.Services.SaveFileService>();
 builder.Services.AddScoped<Madtorio.Services.IFileStorageService, Madtorio.Services.FileStorageService>();
 builder.Services.AddScoped<Madtorio.Services.IChunkedFileUploadService, Madtorio.Services.ChunkedFileUploadService>();
+builder.Services.AddScoped<Madtorio.Services.IRulesService, Madtorio.Services.RulesService>();
 
 var app = builder.Build();
 

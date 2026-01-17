@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using Madtorio.Services
+@inject IRulesService RulesService
+@rendermode InteractiveServer
 
 <PageTitle>Madtorio - Factorio Community</PageTitle>
 
@@ -12,6 +15,24 @@
         Browse Save Files
     </a>
 </div>
+
+@if (!string.IsNullOrEmpty(serverIp))
+{
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card server-highlight">
+                <div class="card-header">
+                    <h3>Join Our Factorio Server</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p>Connect to our dedicated Factorio server and build with the community:</p>
+                    <h2 class="text-orange mb-3">@serverIp</h2>
+                    <a href="/server-info" class="btn">Connection Guide</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <div class="row mt-4">
     <div class="col-md-4">
@@ -52,3 +73,20 @@
 <footer class="mt-5">
     <p>Madtorio - A Factorio Community | The factory must grow!</p>
 </footer>
+
+@code {
+    private string? serverIp;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            serverIp = await RulesService.GetServerConfigAsync("ServerIP");
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't show to user
+            Console.WriteLine($"Error loading server IP: {ex.Message}");
+        }
+    }
+}

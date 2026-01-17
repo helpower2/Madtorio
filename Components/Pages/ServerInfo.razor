@@ -1,0 +1,137 @@
+@page "/server-info"
+@using Madtorio.Services
+@inject IRulesService RulesService
+@rendermode InteractiveServer
+
+<PageTitle>Server Info - Madtorio</PageTitle>
+
+<h1>Factorio Server Information</h1>
+
+@if (isLoading)
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <p>Loading server information...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(serverIp))
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card server-highlight">
+                <div class="card-header">
+                    <h2>Server Address</h2>
+                </div>
+                <div class="card-body text-center">
+                    <p>Connect to our dedicated Factorio server:</p>
+                    <h1 class="text-orange mb-4">@serverIp</h1>
+                    <p class="text-muted">Copy this address and paste it in Factorio's multiplayer menu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2>How to Connect</h2>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>Launch Factorio and click <strong>Play</strong></li>
+                        <li>Select <strong>Multiplayer</strong></li>
+                        <li>Click <strong>Connect to address</strong></li>
+                        <li>Enter the server IP: <code>@serverIp</code></li>
+                        <li>Click <strong>Connect</strong></li>
+                    </ol>
+                    <p class="mt-3">
+                        <strong>Note:</strong> Make sure you're running the latest version of Factorio
+                        to ensure compatibility with the server.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Server Rules</h2>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Before joining, please familiarize yourself with our community rules to ensure
+                        a positive experience for all players.
+                    </p>
+                    <a href="/rules" class="btn">View Rules</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Need Help?</h2>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Having trouble connecting or have questions? Join our Discord server for support
+                        from the community and server administrators.
+                    </p>
+                    <a href="https://tinyurl.com/madtorio-server" target="_blank" class="btn">
+                        Join Discord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">Server information is not available at this time. Please check back later or contact an administrator.</p>
+                    <a href="https://tinyurl.com/madtorio-server" target="_blank" class="btn">
+                        Join Discord for Updates
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<footer class="mt-5">
+    <p><a href="/">Back to Home</a></p>
+</footer>
+
+@code {
+    private string? serverIp;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            serverIp = await RulesService.GetServerConfigAsync("ServerIP");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading server IP: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

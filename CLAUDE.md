@@ -49,11 +49,16 @@ dotnet ef migrations add <MigrationName> --output-dir Data/Migrations
 Services follow interface-based dependency injection:
 - `ISaveFileService` / `SaveFileService` - CRUD operations for save file metadata
 - `IFileStorageService` / `FileStorageService` - Physical file storage operations
+- `IChunkedFileUploadService` / `ChunkedFileUploadService` - Chunked file upload handling
+- `IRulesService` / `RulesService` - Rules and server configuration management
 
 ### Database
 - Uses SQLite database (`madtorio.db`)
 - Connection string in `appsettings.json`
-- Database auto-migrates and seeds admin user on startup via `DbInitializer`
+- Database auto-migrates and seeds data on startup via `DbInitializer`:
+  - Admin user (email: admin@madtorio.com)
+  - Rule categories and rules (15 total rules)
+  - Server configuration (Factorio server IP)
 
 ### Authentication
 - Identity configured with role support ("Admin" role)
@@ -61,7 +66,112 @@ Services follow interface-based dependency injection:
 - Admin pages protected with `[Authorize(Policy = "Admin")]`
 - File upload limit: 500MB configured in `FormOptions`
 
+## Rules System
+
+### Overview
+The Rules System is an admin-editable database-driven feature for managing community rules and server configuration. Rules are organized into categories and can be managed through the admin interface.
+
+### Database Schema
+
+#### RuleCategory
+- `Id` (int, PK)
+- `Name` (string, 100 chars, required)
+- `Description` (string, 500 chars, nullable)
+- `DisplayOrder` (int) - Controls display order
+- `IsEnabled` (bool) - Soft delete flag
+- `CreatedDate`, `ModifiedDate` - Audit timestamps
+- Navigation: `Rules` collection
+
+#### Rule
+- `Id` (int, PK)
+- `CategoryId` (int, FK to RuleCategory)
+- `Content` (string, 2000 chars, required) - Main rule text
+- `DetailedDescription` (string, 5000 chars, nullable) - Extended explanation
+- `DisplayOrder` (int) - Controls display order within category
+- `IsEnabled` (bool) - Soft delete flag
+- `CreatedDate`, `ModifiedDate` - Audit timestamps
+- Navigation: `Category`
+
+#### ServerConfig
+- `Id` (int, PK)
+- `Key` (string, 50 chars, unique, required)
+- `Value` (string, 500 chars, required)
+- `Description` (string, 200 chars, nullable)
+- `ModifiedDate`, `ModifiedBy` - Audit fields
+
+### Default Seeded Data
+
+**General Rules Category** (6 rules):
+1. Keep it in english
+2. No racism, sexism, bigotry, etc.
+3. No NSFW posts; this includes images, links and other content
+4. No charged conversations, or being toxic, treat everyone with respect
+5. No drama. Leave private matters private, and avoid starting conflict with other members of the server
+6. No abusing reactions. This includes spelling hateful things and stirring up drama through them
+
+**Factorio Server Rules Category** (9 rules):
+1. All general rules still apply
+2. No griefing; which includes killing players out of malice
+3. No game breaking bug abuse
+4. Keep the arguments civil and respectful, don't get personal
+5. Avoid excessive or selfish use of shared resources (with detailed description about resource management)
+6. Respect server limits; avoid creating unnecessarily resource-intensive or lag-inducing systems
+7. Each planet should be a unified system, since you can only have 1 cargo landing pad
+8. Complete pre-made factory blueprints from external sources are not allowed. Using individual blueprints (miners, smelters, etc.) is fine. Build the overall base collaboratively
+9. Make an effort to complete your projects that fall under the category of factory critical
+
+**Server IP**: 192.67.197.11
+
+### Key Pages
+
+#### Public Pages
+- `/rules` - Displays all active rules grouped by category, plus server IP
+- `/server-info` - Dedicated page for server connection information with instructions
+- `/` (Home) - Shows server IP in a highlighted card
+
+#### Admin Pages
+- `/admin/rules` - Full CRUD interface for managing rules and categories
+  - Two tabs: "Rules Management" and "Server Settings"
+  - Inline editing for categories and rules
+  - Up/down arrows for reordering
+  - Enable/disable toggles
+  - Delete with confirmation
+
+### RulesService API
+
+**Category Operations:**
+- `GetAllCategoriesAsync(includeDisabled)` - Get all categories with rules
+- `GetCategoryByIdAsync(id)` - Get specific category
+- `CreateCategoryAsync(category)` - Create new category
+- `UpdateCategoryAsync(category)` - Update existing category
+- `DeleteCategoryAsync(id)` - Delete category (cascade deletes rules)
+- `ReorderCategoriesAsync(categoryIds)` - Update display order
+
+**Rule Operations:**
+- `GetRulesByCategoryAsync(categoryId, includeDisabled)` - Get rules for category
+- `GetRuleByIdAsync(id)` - Get specific rule
+- `CreateRuleAsync(rule)` - Create new rule
+- `UpdateRuleAsync(rule)` - Update existing rule
+- `DeleteRuleAsync(id)` - Delete rule
+- `ReorderRulesAsync(categoryId, ruleIds)` - Update display order within category
+
+**Display Operations:**
+- `GetActiveRulesGroupedAsync()` - Get dictionary of active categories with their active rules (for public display)
+
+**Server Config Operations:**
+- `GetServerConfigAsync(key)` - Get config value by key
+- `SetServerConfigAsync(key, value, modifiedBy)` - Set config value
+
+### Implementation Notes
+- Uses soft deletes (IsEnabled flag) to preserve history
+- DisplayOrder allows admin-controlled sorting without complex SQL
+- Detailed descriptions support extended explanations (e.g., rule #5 resource management)
+- All admin operations require "Admin" role authorization
+- Public pages only show enabled categories and rules
+- Server IP cached in memory for performance
+
 ## Development Guidelines
 
 - When creating new components, add them to the component test page (`/admin/component-test`)
 - Only git commit when a feature is complete and tested
+- Rules system follows the same service pattern as SaveFiles - interface-based DI with comprehensive CRUD operations

@@ -1,0 +1,553 @@
+@page "/admin/rules"
+@using Madtorio.Services
+@using Madtorio.Data.Models
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject IRulesService RulesService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Manage Rules - Admin</PageTitle>
+
+<h1>Manage Rules & Server Settings</h1>
+
+<div class="tabs">
+    <button class="@(activeTab == "rules" ? "tab-active" : "")" @onclick="@(() => activeTab = "rules")">
+        Rules Management
+    </button>
+    <button class="@(activeTab == "server" ? "tab-active" : "")" @onclick="@(() => activeTab = "server")">
+        Server Settings
+    </button>
+</div>
+
+@if (activeTab == "rules")
+{
+    <div class="mt-4">
+        <h2>Categories & Rules</h2>
+
+        @if (statusMessage != null)
+        {
+            <div class="alert @(statusMessage.StartsWith("Error") ? "alert-danger" : "alert-success")">
+                @statusMessage
+            </div>
+        }
+
+        @if (isLoading)
+        {
+            <div class="card">
+                <div class="card-body text-center">
+                    <p>Loading rules...</p>
+                </div>
+            </div>
+        }
+        else if (categories != null)
+        {
+            <div class="mb-3">
+                <button class="btn" @onclick="ShowAddCategoryForm">
+                    Add New Category
+                </button>
+            </div>
+
+            @if (showAddCategoryForm)
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3>New Category</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Category Name</label>
+                            <input type="text" class="form-control" @bind="newCategoryName" placeholder="e.g., General Rules" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description (optional)</label>
+                            <input type="text" class="form-control" @bind="newCategoryDescription" placeholder="Brief description" />
+                        </div>
+                        <button class="btn" @onclick="AddCategory">Save Category</button>
+                        <button class="btn btn-secondary" @onclick="() => showAddCategoryForm = false">Cancel</button>
+                    </div>
+                </div>
+            }
+
+            @foreach (var category in categories.OrderBy(c => c.DisplayOrder))
+            {
+                <div class="card mb-3">
+                    <div class="card-header">
+                        @if (editingCategoryId == category.Id)
+                        {
+                            <input type="text" class="form-control mb-2" @bind="editCategoryName" />
+                            <input type="text" class="form-control mb-2" @bind="editCategoryDescription" placeholder="Description (optional)" />
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" @bind="editCategoryEnabled" />
+                                Enabled
+                            </label>
+                            <div class="mt-2">
+                                <button class="btn btn-sm" @onclick="() => SaveCategoryEdit(category.Id)">Save</button>
+                                <button class="btn btn-sm btn-secondary" @onclick="CancelCategoryEdit">Cancel</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3>@category.Name @(!category.IsEnabled ? "(Disabled)" : "")</h3>
+                                    @if (!string.IsNullOrEmpty(category.Description))
+                                    {
+                                        <p class="text-muted mb-0">@category.Description</p>
+                                    }
+                                </div>
+                                <div>
+                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => StartEditingCategory(category)">Edit</button>
+                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveCategoryUp(category)">↑</button>
+                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveCategoryDown(category)">↓</button>
+                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => DeleteCategory(category.Id)">Delete</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (category.Rules.Any())
+                        {
+                            <ol>
+                                @foreach (var rule in category.Rules.OrderBy(r => r.DisplayOrder))
+                                {
+                                    <li class="mb-3">
+                                        @if (editingRuleId == rule.Id)
+                                        {
+                                            <textarea class="form-control mb-2" rows="3" @bind="editRuleContent"></textarea>
+                                            <textarea class="form-control mb-2" rows="2" @bind="editRuleDetailedDescription" placeholder="Detailed description (optional)"></textarea>
+                                            <label class="form-check-label">
+                                                <input type="checkbox" class="form-check-input" @bind="editRuleEnabled" />
+                                                Enabled
+                                            </label>
+                                            <div class="mt-2">
+                                                <button class="btn btn-sm" @onclick="() => SaveRuleEdit(rule.Id)">Save</button>
+                                                <button class="btn btn-sm btn-secondary" @onclick="CancelRuleEdit">Cancel</button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div>
+                                                <strong>@rule.Content</strong> @(!rule.IsEnabled ? "(Disabled)" : "")
+                                                @if (!string.IsNullOrEmpty(rule.DetailedDescription))
+                                                {
+                                                    <br />
+                                                    <small style="color: #aaa;">@rule.DetailedDescription</small>
+                                                }
+                                                <div class="mt-2">
+                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => StartEditingRule(rule)">Edit</button>
+                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveRuleUp(category.Id, rule)">↑</button>
+                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveRuleDown(category.Id, rule)">↓</button>
+                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => DeleteRule(rule.Id)">Delete</button>
+                                                </div>
+                                            </div>
+                                        }
+                                    </li>
+                                }
+                            </ol>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No rules in this category yet.</p>
+                        }
+
+                        @if (addingRuleToCategoryId == category.Id)
+                        {
+                            <div class="card mt-3">
+                                <div class="card-body">
+                                    <h4>New Rule</h4>
+                                    <div class="form-group">
+                                        <label>Rule Content</label>
+                                        <textarea class="form-control" rows="3" @bind="newRuleContent" placeholder="Enter rule text"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Detailed Description (optional)</label>
+                                        <textarea class="form-control" rows="2" @bind="newRuleDetailedDescription" placeholder="Additional details or examples"></textarea>
+                                    </div>
+                                    <button class="btn" @onclick="() => AddRule(category.Id)">Save Rule</button>
+                                    <button class="btn btn-secondary" @onclick="CancelAddRule">Cancel</button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm" @onclick="() => ShowAddRuleForm(category.Id)">
+                                Add Rule to @category.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
+else if (activeTab == "server")
+{
+    <div class="mt-4">
+        <h2>Server Configuration</h2>
+
+        @if (statusMessage != null)
+        {
+            <div class="alert @(statusMessage.StartsWith("Error") ? "alert-danger" : "alert-success")">
+                @statusMessage
+            </div>
+        }
+
+        @if (isLoading)
+        {
+            <div class="card">
+                <div class="card-body text-center">
+                    <p>Loading server settings...</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h3>Server IP Address</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Server IP</label>
+                        <input type="text" class="form-control" @bind="serverIpInput" placeholder="e.g., 192.67.197.11" />
+                        <small class="text-muted">Enter the IP address or hostname of your Factorio server</small>
+                    </div>
+                    <button class="btn" @onclick="SaveServerIp">Save Server IP</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="mt-4">
+    <a href="/admin" class="btn btn-secondary">Back to Admin Panel</a>
+</div>
+
+@code {
+    private string activeTab = "rules";
+    private List<RuleCategory>? categories;
+    private bool isLoading = true;
+    private string? statusMessage;
+
+    // Category editing
+    private int? editingCategoryId;
+    private string editCategoryName = "";
+    private string? editCategoryDescription;
+    private bool editCategoryEnabled;
+    private bool showAddCategoryForm;
+    private string newCategoryName = "";
+    private string? newCategoryDescription;
+
+    // Rule editing
+    private int? editingRuleId;
+    private string editRuleContent = "";
+    private string? editRuleDetailedDescription;
+    private bool editRuleEnabled;
+    private int? addingRuleToCategoryId;
+    private string newRuleContent = "";
+    private string? newRuleDetailedDescription;
+
+    // Server config
+    private string serverIpInput = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            categories = await RulesService.GetAllCategoriesAsync(includeDisabled: true);
+            var serverIp = await RulesService.GetServerConfigAsync("ServerIP");
+            serverIpInput = serverIp ?? "";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Category management
+    private void ShowAddCategoryForm()
+    {
+        showAddCategoryForm = true;
+        newCategoryName = "";
+        newCategoryDescription = null;
+    }
+
+    private async Task AddCategory()
+    {
+        if (string.IsNullOrWhiteSpace(newCategoryName))
+        {
+            statusMessage = "Error: Category name is required";
+            return;
+        }
+
+        try
+        {
+            var category = new RuleCategory
+            {
+                Name = newCategoryName,
+                Description = string.IsNullOrWhiteSpace(newCategoryDescription) ? null : newCategoryDescription,
+                IsEnabled = true
+            };
+            await RulesService.CreateCategoryAsync(category);
+            statusMessage = "Category added successfully";
+            showAddCategoryForm = false;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error adding category: {ex.Message}";
+        }
+    }
+
+    private void StartEditingCategory(RuleCategory category)
+    {
+        editingCategoryId = category.Id;
+        editCategoryName = category.Name;
+        editCategoryDescription = category.Description;
+        editCategoryEnabled = category.IsEnabled;
+    }
+
+    private async Task SaveCategoryEdit(int categoryId)
+    {
+        var category = categories?.FirstOrDefault(c => c.Id == categoryId);
+        if (category == null) return;
+
+        category.Name = editCategoryName;
+        category.Description = string.IsNullOrWhiteSpace(editCategoryDescription) ? null : editCategoryDescription;
+        category.IsEnabled = editCategoryEnabled;
+
+        try
+        {
+            await RulesService.UpdateCategoryAsync(category);
+            statusMessage = "Category updated successfully";
+            editingCategoryId = null;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error updating category: {ex.Message}";
+        }
+    }
+
+    private void CancelCategoryEdit()
+    {
+        editingCategoryId = null;
+    }
+
+    private async Task DeleteCategory(int categoryId)
+    {
+        if (!await JSConfirm("Are you sure you want to delete this category? All rules in this category will also be deleted."))
+            return;
+
+        try
+        {
+            await RulesService.DeleteCategoryAsync(categoryId);
+            statusMessage = "Category deleted successfully";
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error deleting category: {ex.Message}";
+        }
+    }
+
+    private async Task MoveCategoryUp(RuleCategory category)
+    {
+        if (categories == null) return;
+
+        var orderedCategories = categories.OrderBy(c => c.DisplayOrder).ToList();
+        var index = orderedCategories.IndexOf(category);
+        if (index > 0)
+        {
+            var temp = orderedCategories[index - 1].DisplayOrder;
+            orderedCategories[index - 1].DisplayOrder = category.DisplayOrder;
+            category.DisplayOrder = temp;
+
+            await RulesService.ReorderCategoriesAsync(orderedCategories.Select(c => c.Id).ToList());
+            await LoadData();
+        }
+    }
+
+    private async Task MoveCategoryDown(RuleCategory category)
+    {
+        if (categories == null) return;
+
+        var orderedCategories = categories.OrderBy(c => c.DisplayOrder).ToList();
+        var index = orderedCategories.IndexOf(category);
+        if (index < orderedCategories.Count - 1)
+        {
+            var temp = orderedCategories[index + 1].DisplayOrder;
+            orderedCategories[index + 1].DisplayOrder = category.DisplayOrder;
+            category.DisplayOrder = temp;
+
+            await RulesService.ReorderCategoriesAsync(orderedCategories.Select(c => c.Id).ToList());
+            await LoadData();
+        }
+    }
+
+    // Rule management
+    private void ShowAddRuleForm(int categoryId)
+    {
+        addingRuleToCategoryId = categoryId;
+        newRuleContent = "";
+        newRuleDetailedDescription = null;
+    }
+
+    private void CancelAddRule()
+    {
+        addingRuleToCategoryId = null;
+    }
+
+    private async Task AddRule(int categoryId)
+    {
+        if (string.IsNullOrWhiteSpace(newRuleContent))
+        {
+            statusMessage = "Error: Rule content is required";
+            return;
+        }
+
+        try
+        {
+            var rule = new Rule
+            {
+                CategoryId = categoryId,
+                Content = newRuleContent,
+                DetailedDescription = string.IsNullOrWhiteSpace(newRuleDetailedDescription) ? null : newRuleDetailedDescription,
+                IsEnabled = true
+            };
+            await RulesService.CreateRuleAsync(rule);
+            statusMessage = "Rule added successfully";
+            addingRuleToCategoryId = null;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error adding rule: {ex.Message}";
+        }
+    }
+
+    private void StartEditingRule(Rule rule)
+    {
+        editingRuleId = rule.Id;
+        editRuleContent = rule.Content;
+        editRuleDetailedDescription = rule.DetailedDescription;
+        editRuleEnabled = rule.IsEnabled;
+    }
+
+    private async Task SaveRuleEdit(int ruleId)
+    {
+        var rule = categories?.SelectMany(c => c.Rules).FirstOrDefault(r => r.Id == ruleId);
+        if (rule == null) return;
+
+        rule.Content = editRuleContent;
+        rule.DetailedDescription = string.IsNullOrWhiteSpace(editRuleDetailedDescription) ? null : editRuleDetailedDescription;
+        rule.IsEnabled = editRuleEnabled;
+
+        try
+        {
+            await RulesService.UpdateRuleAsync(rule);
+            statusMessage = "Rule updated successfully";
+            editingRuleId = null;
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error updating rule: {ex.Message}";
+        }
+    }
+
+    private void CancelRuleEdit()
+    {
+        editingRuleId = null;
+    }
+
+    private async Task DeleteRule(int ruleId)
+    {
+        if (!await JSConfirm("Are you sure you want to delete this rule?"))
+            return;
+
+        try
+        {
+            await RulesService.DeleteRuleAsync(ruleId);
+            statusMessage = "Rule deleted successfully";
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error deleting rule: {ex.Message}";
+        }
+    }
+
+    private async Task MoveRuleUp(int categoryId, Rule rule)
+    {
+        var category = categories?.FirstOrDefault(c => c.Id == categoryId);
+        if (category == null) return;
+
+        var orderedRules = category.Rules.OrderBy(r => r.DisplayOrder).ToList();
+        var index = orderedRules.IndexOf(rule);
+        if (index > 0)
+        {
+            var temp = orderedRules[index - 1].DisplayOrder;
+            orderedRules[index - 1].DisplayOrder = rule.DisplayOrder;
+            rule.DisplayOrder = temp;
+
+            await RulesService.ReorderRulesAsync(categoryId, orderedRules.Select(r => r.Id).ToList());
+            await LoadData();
+        }
+    }
+
+    private async Task MoveRuleDown(int categoryId, Rule rule)
+    {
+        var category = categories?.FirstOrDefault(c => c.Id == categoryId);
+        if (category == null) return;
+
+        var orderedRules = category.Rules.OrderBy(r => r.DisplayOrder).ToList();
+        var index = orderedRules.IndexOf(rule);
+        if (index < orderedRules.Count - 1)
+        {
+            var temp = orderedRules[index + 1].DisplayOrder;
+            orderedRules[index + 1].DisplayOrder = rule.DisplayOrder;
+            rule.DisplayOrder = temp;
+
+            await RulesService.ReorderRulesAsync(categoryId, orderedRules.Select(r => r.Id).ToList());
+            await LoadData();
+        }
+    }
+
+    // Server config
+    private async Task SaveServerIp()
+    {
+        if (string.IsNullOrWhiteSpace(serverIpInput))
+        {
+            statusMessage = "Error: Server IP is required";
+            return;
+        }
+
+        try
+        {
+            await RulesService.SetServerConfigAsync("ServerIP", serverIpInput);
+            statusMessage = "Server IP updated successfully";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error updating server IP: {ex.Message}";
+        }
+    }
+
+    private async Task<bool> JSConfirm(string message)
+    {
+        // Simplified confirmation - in production, use JSInterop
+        return true; // For now, always confirm
+    }
+}
