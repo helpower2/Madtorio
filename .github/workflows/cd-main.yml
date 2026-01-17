@@ -64,7 +64,7 @@ jobs:
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "is_tag=true" >> $GITHUB_OUTPUT
           else
-            VERSION="main-${GITHUB_SHA::7}"
+            VERSION="1.0.0+main.${GITHUB_SHA::7}"
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "is_tag=false" >> $GITHUB_OUTPUT
           fi

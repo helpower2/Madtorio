@@ -11,7 +11,7 @@ COPY . .
 
 # Build and publish in Release configuration
 ARG VERSION=dev
-RUN dotnet publish "Madtorio.csproj" -c Release -o /app/publish --no-restore -p:InformationalVersion=${VERSION}
+RUN dotnet publish "Madtorio.csproj" -c Release -o /app/publish --no-restore -p:Version=${VERSION} -p:InformationalVersion=${VERSION}
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
