@@ -20,7 +20,7 @@ public class SaveFileService : ISaveFileService
         try
         {
             return await _context.SaveFiles
-                .OrderByDescending(s => s.UploadDate)
+                .OrderByDescending(s => s.ModifiedDate ?? s.UploadDate)
                 .ToListAsync();
         }
         catch (Exception ex)
@@ -47,6 +47,17 @@ public class SaveFileService : ISaveFileService
     {
         try
         {
+            // Only set dates if they're not already specified
+            if (saveFile.UploadDate == default(DateTime))
+            {
+                saveFile.UploadDate = DateTime.UtcNow;
+            }
+
+            if (saveFile.ModifiedDate == null || saveFile.ModifiedDate == default(DateTime))
+            {
+                saveFile.ModifiedDate = saveFile.UploadDate;
+            }
+
             _context.SaveFiles.Add(saveFile);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Save file created: {FileName}", saveFile.FileName);
@@ -63,6 +74,7 @@ public class SaveFileService : ISaveFileService
     {
         try
         {
+            saveFile.ModifiedDate = DateTime.UtcNow;
             _context.SaveFiles.Update(saveFile);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Save file updated: {Id}", saveFile.Id);

@@ -21,6 +21,8 @@ public class SaveFile
     [Required]
     public DateTime UploadDate { get; set; } = DateTime.UtcNow;
 
+    public DateTime? ModifiedDate { get; set; }
+
     [Required]
     public long FileSize { get; set; }
 

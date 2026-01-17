@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Madtorio.Data.Models
+@using Madtorio.Data.Validation
 @attribute [Authorize(Roles = "Admin")]
 @inject Madtorio.Services.ISaveFileService SaveFileService
 @inject Madtorio.Services.IFileStorageService FileStorageService
@@ -64,7 +65,16 @@ else
                                     @(save.Description.Length > 100 ? save.Description.Substring(0, 100) + "..." : save.Description)
                                 }
                             </td>
-                            <td>@save.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                            <td>
+                                @if (editingSaveId == save.Id)
+                                {
+                                    <input type="date" @bind="editUploadDate" class="form-control" style="min-width: 150px;" />
+                                }
+                                else
+                                {
+                                    @save.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")
+                                }
+                            </td>
                             <td>@FileStorageService.FormatFileSize(save.FileSize)</td>
                             <td>
                                 @if (editingSaveId == save.Id)
@@ -131,6 +141,7 @@ else
 
     private int? editingSaveId;
     private string editDescription = string.Empty;
+    private DateTime? editUploadDate;
 
     private bool showDeleteDialog = false;
     private SaveFile? saveToDelete;
@@ -152,6 +163,7 @@ else
     {
         editingSaveId = save.Id;
         editDescription = save.Description;
+        editUploadDate = save.UploadDate.Date;
         errorMessage = null;
         successMessage = null;
     }
@@ -160,6 +172,7 @@ else
     {
         editingSaveId = null;
         editDescription = string.Empty;
+        editUploadDate = null;
     }
 
     private async Task SaveEdit(SaveFile save)
@@ -167,6 +180,19 @@ else
         try
         {
             save.Description = editDescription;
+
+            // Update upload date if changed
+            if (editUploadDate.HasValue)
+            {
+                // Convert local date to UTC for storage
+                var localDate = editUploadDate.Value;
+                if (localDate.Kind == DateTimeKind.Unspecified)
+                {
+                    localDate = DateTime.SpecifyKind(localDate, DateTimeKind.Local);
+                }
+                save.UploadDate = localDate.ToUniversalTime();
+            }
+
             var success = await SaveFileService.UpdateSaveAsync(save);
 
             if (success)
@@ -174,6 +200,7 @@ else
                 successMessage = "Save file updated successfully!";
                 editingSaveId = null;
                 editDescription = string.Empty;
+                editUploadDate = null;
                 await LoadSaveFiles();
             }
             else

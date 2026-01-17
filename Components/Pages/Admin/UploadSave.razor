@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @using Madtorio.Data.Models
+@using Madtorio.Data.Validation
 @attribute [Authorize(Roles = "Admin")]
 @inject Madtorio.Services.ISaveFileService SaveFileService
 @inject Madtorio.Services.IFileStorageService FileStorageService
@@ -52,6 +53,15 @@
             <div class="form-group mb-3">
                 <label for="description" class="form-label">Description</label>
                 <InputTextArea id="description" @bind-Value="uploadModel.Description" class="form-control" rows="5" disabled="@uploading" placeholder="Describe this save file: What's built? What stage of the game? Any special features?" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="uploadDate" class="form-label">Upload Date (Optional)</label>
+                <InputDate id="uploadDate" @bind-Value="uploadModel.CustomUploadDate" class="form-control" disabled="@uploading" />
+                <small class="form-text text-muted">
+                    Leave empty to use current date/time. Date cannot be in the future.
+                </small>
+                <ValidationMessage For="@(() => uploadModel.CustomUploadDate)" />
             </div>
 
             @if (uploading)
@@ -276,12 +286,34 @@
             uploadStatus = "Creating database record...";
             await InvokeAsync(StateHasChanged);
 
+            // Determine the upload date: use custom date if provided, otherwise current time
+            DateTime uploadDateTime;
+            if (uploadModel.CustomUploadDate.HasValue)
+            {
+                // User selected a custom date - treat as local time and convert to UTC
+                var localDate = uploadModel.CustomUploadDate.Value;
+
+                // If the date has no time component (Kind is Unspecified), assume local midnight
+                if (localDate.Kind == DateTimeKind.Unspecified)
+                {
+                    localDate = DateTime.SpecifyKind(localDate, DateTimeKind.Local);
+                }
+
+                uploadDateTime = localDate.ToUniversalTime();
+            }
+            else
+            {
+                // No custom date - use current time
+                uploadDateTime = DateTime.UtcNow;
+            }
+
             var saveFile = new SaveFile
             {
                 FileName = uploadModel.FileName,
                 Description = uploadModel.Description,
                 FilePath = filePath,
-                UploadDate = DateTime.UtcNow,
+                UploadDate = uploadDateTime,
+                ModifiedDate = uploadDateTime,
                 FileSize = selectedFile.Size,
                 UploadedBy = userName
             };
@@ -333,5 +365,8 @@
         [Required(ErrorMessage = "Description is required")]
         [StringLength(2000, ErrorMessage = "Description must be less than 2000 characters")]
         public string Description { get; set; } = string.Empty;
+
+        [NotFutureDate(ErrorMessage = "Upload date cannot be in the future.")]
+        public DateTime? CustomUploadDate { get; set; }
     }
 }
