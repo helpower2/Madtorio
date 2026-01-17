@@ -370,9 +370,8 @@ else if (activeTab == "server")
         var index = orderedCategories.IndexOf(category);
         if (index > 0)
         {
-            var temp = orderedCategories[index - 1].DisplayOrder;
-            orderedCategories[index - 1].DisplayOrder = category.DisplayOrder;
-            category.DisplayOrder = temp;
+            // Swap positions in the list
+            (orderedCategories[index], orderedCategories[index - 1]) = (orderedCategories[index - 1], orderedCategories[index]);
 
             await RulesService.ReorderCategoriesAsync(orderedCategories.Select(c => c.Id).ToList());
             await LoadData();
@@ -387,9 +386,8 @@ else if (activeTab == "server")
         var index = orderedCategories.IndexOf(category);
         if (index < orderedCategories.Count - 1)
         {
-            var temp = orderedCategories[index + 1].DisplayOrder;
-            orderedCategories[index + 1].DisplayOrder = category.DisplayOrder;
-            category.DisplayOrder = temp;
+            // Swap positions in the list
+            (orderedCategories[index], orderedCategories[index + 1]) = (orderedCategories[index + 1], orderedCategories[index]);
 
             await RulesService.ReorderCategoriesAsync(orderedCategories.Select(c => c.Id).ToList());
             await LoadData();
@@ -498,9 +496,8 @@ else if (activeTab == "server")
         var index = orderedRules.IndexOf(rule);
         if (index > 0)
         {
-            var temp = orderedRules[index - 1].DisplayOrder;
-            orderedRules[index - 1].DisplayOrder = rule.DisplayOrder;
-            rule.DisplayOrder = temp;
+            // Swap positions in the list
+            (orderedRules[index], orderedRules[index - 1]) = (orderedRules[index - 1], orderedRules[index]);
 
             await RulesService.ReorderRulesAsync(categoryId, orderedRules.Select(r => r.Id).ToList());
             await LoadData();
@@ -516,9 +513,8 @@ else if (activeTab == "server")
         var index = orderedRules.IndexOf(rule);
         if (index < orderedRules.Count - 1)
         {
-            var temp = orderedRules[index + 1].DisplayOrder;
-            orderedRules[index + 1].DisplayOrder = rule.DisplayOrder;
-            rule.DisplayOrder = temp;
+            // Swap positions in the list
+            (orderedRules[index], orderedRules[index + 1]) = (orderedRules[index + 1], orderedRules[index]);
 
             await RulesService.ReorderRulesAsync(categoryId, orderedRules.Select(r => r.Id).ToList());
             await LoadData();

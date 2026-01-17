@@ -6,12 +6,24 @@ namespace Madtorio.Data.Seed;
 
 public static class DbInitializer
 {
-    public static async Task InitializeAsync(IServiceProvider serviceProvider)
+    public static async Task InitializeAsync(IServiceProvider serviceProvider, string adminEmail, string adminPassword)
     {
         var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+        // Validate admin email
+        if (string.IsNullOrWhiteSpace(adminEmail) || !adminEmail.Contains('@'))
+        {
+            throw new ArgumentException("Invalid admin email address.", nameof(adminEmail));
+        }
+
+        // Validate admin password (Identity requirements)
+        if (string.IsNullOrWhiteSpace(adminPassword) || adminPassword.Length < 6)
+        {
+            throw new ArgumentException("Admin password must be at least 6 characters long.", nameof(adminPassword));
+        }
 
         // Apply any pending migrations
         await context.Database.MigrateAsync();
@@ -27,12 +39,10 @@ public static class DbInitializer
         }
 
         // Create default admin user if it doesn't exist
-        var adminEmail = "admin@madtorio.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
         {
-            var defaultPassword = "Madtorio2026!";
             adminUser = new ApplicationUser
             {
                 UserName = adminEmail,
@@ -40,16 +50,22 @@ public static class DbInitializer
                 EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(adminUser, defaultPassword);
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
 
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
                 logger.LogWarning("========================================");
-                logger.LogWarning("DEFAULT ADMIN USER CREATED");
+                logger.LogWarning("ADMIN USER CREATED");
                 logger.LogWarning("Email: {Email}", adminEmail);
-                logger.LogWarning("Password: {Password}", defaultPassword);
-                logger.LogWarning("PLEASE CHANGE THIS PASSWORD IMMEDIATELY!");
+
+                // Warn if using default credentials
+                if (adminEmail == "admin@madtorio.com" && adminPassword == "Madtorio2026!")
+                {
+                    logger.LogWarning("Using DEFAULT credentials - PLEASE CHANGE IMMEDIATELY!");
+                }
+
+                logger.LogWarning("CHANGE THE PASSWORD ON FIRST LOGIN!");
                 logger.LogWarning("========================================");
             }
             else

@@ -30,8 +30,9 @@ public class FileStorageService : IFileStorageService
                 return (false, null, "Only .zip files are allowed.");
             }
 
-            // Create upload directory if it doesn't exist - using App_Data to prevent hot reload
-            var uploadPath = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads", subdirectory);
+            // Create upload directory if it doesn't exist
+            // Use 'data' directory for Docker compatibility (mapped to persistent volume)
+            var uploadPath = Path.Combine(_environment.ContentRootPath, "data", "uploads", subdirectory);
             Directory.CreateDirectory(uploadPath);
 
             // Generate unique filename
@@ -61,8 +62,8 @@ public class FileStorageService : IFileStorageService
     {
         try
         {
-            // Changed to use ContentRootPath/App_Data - fileName is just the filename now
-            var fullPath = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads", "saves", fileName);
+            // Use 'data' directory for Docker compatibility (mapped to persistent volume)
+            var fullPath = Path.Combine(_environment.ContentRootPath, "data", "uploads", "saves", fileName);
 
             if (File.Exists(fullPath))
             {

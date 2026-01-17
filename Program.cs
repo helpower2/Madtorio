@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Madtorio.Components;
 using Madtorio.Components.Account;
 using Madtorio.Data;
@@ -8,6 +10,25 @@ using Madtorio.Data.Seed;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Read admin credentials from configuration (environment variables or appsettings)
+var adminEmail = builder.Configuration["AdminEmail"] ?? "admin@madtorio.com";
+var adminPassword = builder.Configuration["AdminPassword"] ?? "Madtorio2026!";
+
+// Configure Data Protection keys to persist in the data directory (for Docker)
+var keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "data", "keys");
+Directory.CreateDirectory(keysDirectory);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))
+    .SetApplicationName("Madtorio");
+
+// Configure forwarded headers for reverse proxy/Docker
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Configure Kestrel for chunked uploads (100MB matches Cloudflare limit)
 builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -98,7 +119,7 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
-        await DbInitializer.InitializeAsync(scope.ServiceProvider);
+        await DbInitializer.InitializeAsync(scope.ServiceProvider, adminEmail, adminPassword);
     }
     catch (Exception ex)
     {
@@ -119,11 +140,22 @@ else
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
+
+// Enable forwarded headers and WebSockets for Docker/reverse proxy
+app.UseForwardedHeaders();
+app.UseWebSockets();
+
+// Only use HTTPS redirection in development (production uses reverse proxy)
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
+// Serve static files (required for Blazor JS in production/Docker)
+app.UseStaticFiles();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
