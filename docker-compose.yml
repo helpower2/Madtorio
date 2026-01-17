@@ -5,10 +5,10 @@ services:
       dockerfile: Dockerfile
     container_name: madtorio
     ports:
-      - "8083:8080"
+      - "8567:8567"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTP_PORTS=8567
       - AdminEmail=${ADMIN_EMAIL:-admin@madtorio.com}
       - AdminPassword=${ADMIN_PASSWORD:-Madtorio2026!}
       - ConnectionStrings__DefaultConnection=DataSource=/app/data/madtorio.db;Cache=Shared

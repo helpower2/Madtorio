@@ -39,10 +39,14 @@ dotnet ef migrations add <MigrationName> --output-dir Data/Migrations
   - `Layout/` - Layout components (MainLayout, NavMenu)
   - `Shared/` - Reusable components
   - `Account/` - Identity/authentication components
-- `Data/` - Database layer
+- `Data/` - Database layer (source code)
   - `Models/` - Entity models
   - `Seed/` - Database seeding (DbInitializer)
   - `Migrations/` - EF Core migrations
+- `data/` - Runtime data storage (git-ignored, created at startup)
+  - `uploads/saves/` - Uploaded Factorio save files
+  - `uploads/temp/` - Temporary chunked upload storage
+  - `keys/` - ASP.NET Core Data Protection keys
 - `Services/` - Business logic services
 
 ### Service Layer Pattern
@@ -65,6 +69,61 @@ Services follow interface-based dependency injection:
 - Default admin credentials seeded at startup (email: admin@madtorio.com)
 - Admin pages protected with `[Authorize(Policy = "Admin")]`
 - File upload limit: 500MB configured in `FormOptions`
+
+### Data Storage
+
+**Development Environment:**
+- Database: `madtorio.db` (project root)
+  - Includes WAL files: `madtorio.db-shm`, `madtorio.db-wal`
+  - Git-ignored
+- Uploaded saves: `data/uploads/saves/`
+- Temporary uploads: `data/uploads/temp/`
+- Data protection keys: `data/keys/`
+- All runtime data directories are git-ignored
+
+**Production/Docker Environment:**
+- All data consolidated in: `/app/data/`
+- Database: `/app/data/madtorio.db`
+- Uploaded saves: `/app/data/uploads/saves/`
+- Temporary uploads: `/app/data/uploads/temp/`
+- Data protection keys: `/app/data/keys/`
+
+**Docker Volume Mapping:**
+- docker-compose.yml: `./data:/app/data` (relative to project directory)
+- Recommended for Unraid: `/mnt/user/appdata/madtorio:/app/data`
+- **IMPORTANT:** Without a volume mount, all data is ephemeral and will be lost on container restart/update
+
+**Note:** The `Data/` directory (uppercase) in the repository contains **source code** (Models, Migrations, Seed). The `data/` directory (lowercase) is created at runtime for **data storage**. On Windows (case-insensitive filesystem), both paths resolve to the same directory name but serve different purposes.
+
+### Unraid Deployment
+
+**Template Installation:**
+1. Add the Madtorio template to Community Applications, or
+2. Import `unraid-template.xml` manually through Unraid's Docker page
+
+**Volume Mapping:**
+- Host path: `/mnt/user/appdata/madtorio`
+- Container path: `/app/data`
+- This mapping persists the database, uploaded save files, and data protection keys
+
+**Port Configuration:**
+- Default: 8567
+- Change via Unraid template if needed
+
+**First-Time Setup:**
+1. Deploy the container from the template
+2. Access the web UI at `http://[UNRAID-IP]:8567`
+3. Log in with default credentials:
+   - Email: admin@madtorio.com (or custom AdminEmail from template)
+   - Password: Check logs for auto-generated password or set custom AdminPassword in template
+
+**Data Backup:**
+- Back up `/mnt/user/appdata/madtorio/` to preserve all data
+- Includes database, uploaded saves, and encryption keys
+
+**Troubleshooting:**
+- If `/mnt/user/appdata/madtorio/` is empty, check the volume mapping in the container settings
+- Run `docker exec madtorio ls -la /app/data` to verify data is being stored correctly inside the container
 
 ## Rules System
 

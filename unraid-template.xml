@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>madtorio</Name>
+  <Repository>ghcr.io/helpower2/madtorio:latest</Repository>
+  <Registry>https://ghcr.io/</Registry>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/helpower2/madtorio/issues</Support>
+  <Project>https://github.com/helpower2/madtorio</Project>
+  <Overview>Blazor Server application for managing Factorio save files with user authentication and admin controls.</Overview>
+  <Category>GameServers:</Category>
+  <WebUI>http://[IP]:[PORT:8567]/</WebUI>
+  <Icon>https://raw.githubusercontent.com/helpower2/madtorio/main/wwwroot/favicon.png</Icon>
+
+  <Config Name="WebUI Port" Target="8567" Default="8567" Mode="tcp" Description="Web interface port" Type="Port" Display="always" Required="true" Mask="false">8567</Config>
+
+  <Config Name="Data Directory" Target="/app/data" Default="/mnt/user/appdata/madtorio" Mode="rw" Description="Persistent data storage (database, uploads, keys)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/madtorio</Config>
+
+  <Config Name="Admin Email" Target="AdminEmail" Default="admin@madtorio.com" Mode="" Description="Default admin email address" Type="Variable" Display="always" Required="false" Mask="false">admin@madtorio.com</Config>
+
+  <Config Name="Admin Password" Target="AdminPassword" Default="" Mode="" Description="Default admin password (leave empty for auto-generated)" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+</Container>

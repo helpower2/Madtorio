@@ -16,5 +16,5 @@ obj/
 nul
 
 # Save files and uploads
+data/
 App_Data/
-wwwroot/uploads/
