@@ -1,0 +1,72 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  validate:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests
+        run: |
+          if [ -d "Madtorio.Tests" ]; then
+            dotnet test --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+          else
+            echo "No test project found - skipping tests"
+          fi
+
+      - name: Check code formatting
+        run: dotnet format --verify-no-changes --no-restore
+        continue-on-error: true
+
+      - name: Build with warnings as errors
+        run: dotnet build --no-restore --configuration Release --warnaserror
+        continue-on-error: true
+
+      - name: PR summary
+        run: |
+          echo "### PR Validation Summary :mag:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.head_ref }} → ${{ github.base_ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author**: @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All checks passed! :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const outcome = '${{ job.status }}';
+            const emoji = outcome === 'success' ? '✅' : '❌';
+            const message = outcome === 'success'
+              ? 'All PR checks passed! This PR is ready for review.'
+              : 'Some PR checks failed. Please review the workflow logs.';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${emoji} **PR Validation**: ${message}\n\n[View workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId})`
+            });

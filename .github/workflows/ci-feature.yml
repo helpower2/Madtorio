@@ -1,0 +1,50 @@
+name: CI - Feature Branch
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run tests
+        run: |
+          if [ -d "Madtorio.Tests" ]; then
+            dotnet test --no-build --configuration Release --verbosity normal
+          else
+            echo "No test project found - skipping tests"
+          fi
+
+      - name: Check for warnings
+        run: dotnet build --no-restore --configuration Release --warnaserror
+        continue-on-error: true
+
+      - name: Build summary
+        run: |
+          echo "### Build Summary :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Status**: Success" >> $GITHUB_STEP_SUMMARY
