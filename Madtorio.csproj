@@ -14,6 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Exclude test project files from main project compilation -->
+    <Compile Remove="Madtorio.Tests/**" />
+    <None Remove="Madtorio.Tests/**" />
+    <Content Remove="Madtorio.Tests/**" />
+    <EmbeddedResource Remove="Madtorio.Tests/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">

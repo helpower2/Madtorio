@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Madtorio.csproj" />
+  <Project Path="Madtorio.Tests/Madtorio.Tests.csproj" />
+</Solution>
