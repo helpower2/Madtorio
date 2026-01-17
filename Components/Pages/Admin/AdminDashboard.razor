@@ -1,0 +1,109 @@
+@page "/admin"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject Madtorio.Services.ISaveFileService SaveFileService
+@inject Madtorio.Services.IFileStorageService FileStorageService
+
+<PageTitle>Admin Dashboard - Madtorio</PageTitle>
+
+<h1>Admin Dashboard</h1>
+
+@if (loading)
+{
+    <div class="spinner"></div>
+    <p>Loading statistics...</p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Total Save Files</h3>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-orange">@totalSaves</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Total Storage Used</h3>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-orange">@FileStorageService.FormatFileSize(totalSize)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <a href="/admin/upload" class="btn" style="margin-bottom: 0.5rem; width: 100%;">Upload New Save</a>
+                    <a href="/admin/manage" class="btn btn-secondary" style="width: 100%;">Manage Saves</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h2>Recent Uploads</h2>
+        </div>
+        <div class="card-body">
+            @if (recentSaves == null || !recentSaves.Any())
+            {
+                <p>No save files uploaded yet.</p>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Upload Date</th>
+                            <th>Size</th>
+                            <th>Uploaded By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var save in recentSaves.Take(10))
+                        {
+                            <tr>
+                                <td>@save.FileName</td>
+                                <td>@save.UploadDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>@FileStorageService.FormatFileSize(save.FileSize)</td>
+                                <td>@(save.UploadedBy ?? "Unknown")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool loading = true;
+    private int totalSaves;
+    private long totalSize;
+    private List<Madtorio.Data.Models.SaveFile>? recentSaves;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        loading = true;
+        var stats = await SaveFileService.GetStatisticsAsync();
+        totalSaves = stats.totalSaves;
+        totalSize = stats.totalSize;
+        recentSaves = await SaveFileService.GetAllSavesAsync();
+        loading = false;
+    }
+}

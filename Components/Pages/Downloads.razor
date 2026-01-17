@@ -1,0 +1,48 @@
+@page "/downloads"
+@using Madtorio.Data.Models
+@inject Madtorio.Services.ISaveFileService SaveFileService
+
+<PageTitle>Downloads - Madtorio</PageTitle>
+
+<h1>Save Files</h1>
+<p>Download Factorio save files from our community. Explore different factory designs and learn from experienced engineers.</p>
+
+@if (loading)
+{
+    <div class="spinner"></div>
+    <p class="text-center">Loading save files...</p>
+}
+else if (saveFiles == null || !saveFiles.Any())
+{
+    <div class="alert alert-info">
+        <p>No save files available yet. Check back soon for community uploads!</p>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var save in saveFiles)
+        {
+            <div class="col-12">
+                <SaveFileCard SaveFile="save" />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<SaveFile>? saveFiles;
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSaveFiles();
+    }
+
+    private async Task LoadSaveFiles()
+    {
+        loading = true;
+        saveFiles = await SaveFileService.GetAllSavesAsync();
+        loading = false;
+    }
+}

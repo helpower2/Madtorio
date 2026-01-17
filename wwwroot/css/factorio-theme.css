@@ -1,0 +1,406 @@
+/* Factorio Theme - Official Colors from factorio.com */
+
+:root {
+    /* Official Factorio.com Colors */
+    --factorio-bg: #201810;             /* Main body background */
+    --factorio-panel: #313031;          /* Primary panel background */
+    --factorio-panel-lighter: #414040;  /* Secondary panel background */
+    --factorio-panel-dark: #242324;     /* Inset panel background */
+    --factorio-border: #2e2623;         /* Panel borders */
+    --factorio-text: #ffffff;           /* Primary white text */
+    --factorio-text-cream: #ffe6c0;     /* Headers, emphasis (cream) */
+    --factorio-orange: #ffa200;         /* Orange accent */
+    --factorio-orange-hover: #e39827;   /* Orange hover state */
+    --factorio-button-bg: #8e8e8e;      /* Default button background */
+    --factorio-button-shadow: #604814;  /* Button shadow */
+    --factorio-button-shadow-dark: #432400; /* Button pressed shadow */
+    --factorio-green: #5eb663;          /* Green button */
+    --factorio-green-hover: #92e897;    /* Green hover */
+    --factorio-red: #fe5a5a;            /* Red button */
+    --factorio-red-hover: #ff9b9b;      /* Red hover */
+    --factorio-link: #7dcaed;           /* Link blue */
+    --factorio-link-hover: #9ad1ea;     /* Link hover */
+    --factorio-disabled: #3d3d3d;       /* Disabled state */
+}
+
+/* Global Styles */
+body {
+    background-color: var(--factorio-bg);
+    color: var(--factorio-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--factorio-text-cream);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+
+a {
+    color: var(--factorio-link);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--factorio-link-hover);
+    text-decoration: underline;
+}
+
+/* Buttons - Factorio.com Official Style */
+.btn, button:not(.navbar-toggler) {
+    background: var(--factorio-orange);
+    color: var(--factorio-text);
+    border: 1px solid #222;
+    border-bottom: 3px solid var(--factorio-button-shadow);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    padding: 0.75rem 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    border-radius: 0;
+    font-size: 1rem;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+}
+
+.btn:hover, button:not(.navbar-toggler):hover {
+    background: var(--factorio-orange-hover);
+    border-bottom-color: var(--factorio-button-shadow-dark);
+}
+
+.btn:active, button:not(.navbar-toggler):active {
+    background: var(--factorio-orange-hover);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--factorio-button-shadow-dark);
+    box-shadow: inset 0 2px 3px rgba(0,0,0,0.3);
+    transform: translateY(2px);
+}
+
+.btn-secondary {
+    background: var(--factorio-button-bg);
+    color: var(--factorio-text);
+    border-bottom: 3px solid #515050;
+}
+
+.btn-secondary:hover {
+    background: #9e9e9e;
+}
+
+.btn-danger {
+    background: var(--factorio-red);
+    color: var(--factorio-text);
+    border-bottom: 3px solid #642323;
+}
+
+.btn-danger:hover {
+    background: var(--factorio-red-hover);
+}
+
+.btn:disabled, button:disabled {
+    background: var(--factorio-disabled);
+    color: #666;
+    cursor: not-allowed;
+    border-bottom: 3px solid #2b2b2b;
+}
+
+/* Factorio Panel System */
+.panel {
+    background-color: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.panel-inset {
+    background: var(--factorio-panel-dark);
+    border: 1px solid var(--factorio-border);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    padding: 1rem;
+}
+
+.panel-inset-lighter {
+    background: var(--factorio-panel-lighter);
+    border: 1px solid var(--factorio-border);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+    padding: 1rem;
+}
+
+.panel-header {
+    background: var(--factorio-panel-lighter);
+    border-bottom: 1px solid var(--factorio-border);
+    padding: 0.75rem 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--factorio-text-cream);
+}
+
+.panel-body {
+    padding: 1.5rem;
+}
+
+/* Legacy card support - maps to panel system */
+.card {
+    background-color: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background: var(--factorio-panel-lighter);
+    border-bottom: 1px solid var(--factorio-border);
+    padding: 0.75rem 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--factorio-text-cream);
+}
+
+.card-body {
+    background: var(--factorio-panel);
+    padding: 1.5rem;
+}
+
+/* Forms - Inset Style */
+.form-control, input, textarea, select {
+    background: var(--factorio-panel-dark);
+    color: var(--factorio-text);
+    border: 1px solid var(--factorio-border);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    border-radius: 0;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, input:focus, textarea:focus, select:focus {
+    background: #f0dab4;
+    border-color: var(--factorio-border);
+    outline: none;
+    color: #000;
+}
+
+.form-label {
+    color: var(--factorio-text-cream);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Tables - Panel Style */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--factorio-border);
+    background: var(--factorio-panel);
+}
+
+th {
+    background: var(--factorio-panel-lighter);
+    color: var(--factorio-text-cream);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--factorio-border);
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--factorio-border);
+    background: var(--factorio-panel);
+}
+
+tr:hover td {
+    background: var(--factorio-panel-lighter);
+}
+
+/* Navigation - Panel Style */
+.navbar {
+    background: var(--factorio-panel);
+    border-bottom: 2px solid var(--factorio-border);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    padding: 1rem 0;
+}
+
+.nav-link {
+    color: var(--factorio-text);
+    padding: 0.5rem 1rem;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: var(--factorio-link-hover);
+    background: var(--factorio-panel-lighter);
+}
+
+.nav-link.active {
+    color: var(--factorio-orange);
+    background: var(--factorio-panel-lighter);
+    border-bottom: 2px solid var(--factorio-orange);
+}
+
+/* Alerts */
+.alert {
+    border-radius: 0;
+    border: 2px solid;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background-color: #1a3a1a;
+    border-color: #28a745;
+    color: #4cff4c;
+}
+
+.alert-danger {
+    background-color: #3a1a1a;
+    border-color: var(--factorio-red);
+    color: #ff6666;
+}
+
+.alert-info {
+    background-color: #1a2a3a;
+    border-color: #17a2b8;
+    color: #4cc8ff;
+}
+
+.alert-warning {
+    background-color: #3a2a1a;
+    border-color: var(--factorio-orange);
+    color: #ffc966;
+}
+
+/* Utility Classes */
+.text-orange {
+    color: var(--factorio-orange);
+}
+
+.text-red {
+    color: var(--factorio-red);
+}
+
+.bg-dark-factorio {
+    background-color: var(--factorio-darker-bg);
+}
+
+.border-orange {
+    border-color: var(--factorio-orange);
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 4px solid var(--factorio-gray);
+    border-top: 4px solid var(--factorio-orange);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Save File Card - Panel Style */
+.save-file-card {
+    background: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.save-file-card:hover {
+    background: var(--factorio-panel-lighter);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+.save-file-card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.save-file-card .metadata {
+    color: #999999;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.save-file-card .description {
+    color: var(--factorio-light-text);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* Hero Section - Panel Style */
+.hero {
+    background: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--factorio-text-cream);
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: var(--factorio-text);
+}
+
+/* Footer */
+footer {
+    background-color: var(--factorio-panel);
+    border-top: 2px solid var(--factorio-border);
+    padding: 2rem 0;
+    margin-top: 3rem;
+    text-align: center;
+}
+
+footer p {
+    margin: 0;
+    color: #a6a6a6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    .card {
+        padding: 1rem;
+    }
+}

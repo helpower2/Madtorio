@@ -1,0 +1,25 @@
+@using Madtorio.Data.Models
+@inject Madtorio.Services.IFileStorageService FileStorageService
+
+<div class="save-file-card">
+    <h3>@SaveFile.FileName</h3>
+    <div class="metadata">
+        <span>Uploaded: @SaveFile.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")</span> |
+        <span>Size: @FileStorageService.FormatFileSize(SaveFile.FileSize)</span>
+        @if (!string.IsNullOrEmpty(SaveFile.UploadedBy))
+        {
+            <span> | By: @SaveFile.UploadedBy</span>
+        }
+    </div>
+    <div class="description">
+        @SaveFile.Description
+    </div>
+    <a href="@FileStorageService.GetDownloadUrl(SaveFile.FilePath)" class="btn" download>
+        Download Save File
+    </a>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public SaveFile SaveFile { get; set; } = null!;
+}

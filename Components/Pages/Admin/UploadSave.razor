@@ -1,0 +1,156 @@
+@page "/admin/upload"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Madtorio.Data.Models
+@attribute [Authorize(Roles = "Admin")]
+@inject Madtorio.Services.ISaveFileService SaveFileService
+@inject Madtorio.Services.IFileStorageService FileStorageService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Upload Save - Admin - Madtorio</PageTitle>
+
+<h1>Upload Save File</h1>
+
+<div class="card">
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">
+                @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">
+                @successMessage
+            </div>
+        }
+
+        <EditForm Model="@uploadModel" OnValidSubmit="@HandleUpload">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group mb-3">
+                <label for="file" class="form-label">Select Save File (.zip only, max 500MB)</label>
+                <InputFile id="file" OnChange="@OnFileSelected" accept=".zip" class="form-control" disabled="@uploading" />
+                @if (selectedFile != null)
+                {
+                    <small class="text-orange">Selected: @selectedFile.Name (@FileStorageService.FormatFileSize(selectedFile.Size))</small>
+                }
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="description" class="form-label">Description</label>
+                <InputTextArea id="description" @bind-Value="uploadModel.Description" class="form-control" rows="5" disabled="@uploading" placeholder="Describe this save file: What's built? What stage of the game? Any special features?" />
+            </div>
+
+            @if (uploading)
+            {
+                <div class="spinner"></div>
+                <p>Uploading file... Please wait, this may take a while for large files.</p>
+            }
+            else
+            {
+                <button type="submit" class="btn" disabled="@(selectedFile == null)">
+                    Upload Save File
+                </button>
+                <a href="/admin" class="btn btn-secondary" style="margin-left: 0.5rem;">
+                    Cancel
+                </a>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private UploadModel uploadModel = new();
+    private IBrowserFile? selectedFile;
+    private bool uploading = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        uploadModel.FileName = selectedFile.Name;
+        errorMessage = null;
+        successMessage = null;
+        StateHasChanged(); // Force UI update to enable the button
+    }
+
+    private async Task HandleUpload()
+    {
+        if (selectedFile == null)
+        {
+            errorMessage = "Please select a file to upload.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(uploadModel.Description))
+        {
+            errorMessage = "Please provide a description for the save file.";
+            return;
+        }
+
+        uploading = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            // Save file to storage
+            var (success, filePath, error) = await FileStorageService.SaveFileAsync(selectedFile);
+
+            if (!success || filePath == null)
+            {
+                errorMessage = error ?? "Failed to save file.";
+                uploading = false;
+                return;
+            }
+
+            // Get current user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userName = authState.User.Identity?.Name;
+
+            // Create database record
+            var saveFile = new SaveFile
+            {
+                FileName = uploadModel.FileName,
+                Description = uploadModel.Description,
+                FilePath = filePath,
+                UploadDate = DateTime.UtcNow,
+                FileSize = selectedFile.Size,
+                UploadedBy = userName
+            };
+
+            await SaveFileService.CreateSaveAsync(saveFile);
+
+            successMessage = "Save file uploaded successfully!";
+            uploadModel = new UploadModel();
+            selectedFile = null;
+
+            // Redirect to manage page after 2 seconds
+            await Task.Delay(2000);
+            NavigationManager.NavigateTo("/admin/manage");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            uploading = false;
+        }
+    }
+
+    private class UploadModel
+    {
+        public string FileName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Description is required")]
+        [StringLength(2000, ErrorMessage = "Description must be less than 2000 characters")]
+        public string Description { get; set; } = string.Empty;
+    }
+}

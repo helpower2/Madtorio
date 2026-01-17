@@ -1,0 +1,238 @@
+@page "/admin/manage"
+@using Microsoft.AspNetCore.Authorization
+@using Madtorio.Data.Models
+@attribute [Authorize(Roles = "Admin")]
+@inject Madtorio.Services.ISaveFileService SaveFileService
+@inject Madtorio.Services.IFileStorageService FileStorageService
+
+<PageTitle>Manage Saves - Admin - Madtorio</PageTitle>
+
+<h1>Manage Save Files</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">
+        @successMessage
+    </div>
+}
+
+@if (loading)
+{
+    <div class="spinner"></div>
+    <p>Loading save files...</p>
+}
+else if (saveFiles == null || !saveFiles.Any())
+{
+    <div class="alert alert-info">
+        No save files found. <a href="/admin/upload">Upload your first save file</a>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Description</th>
+                        <th>Upload Date</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var save in saveFiles)
+                    {
+                        <tr>
+                            <td>@save.FileName</td>
+                            <td>
+                                @if (editingSaveId == save.Id)
+                                {
+                                    <textarea @bind="editDescription" class="form-control" rows="3" style="min-width: 300px;"></textarea>
+                                }
+                                else
+                                {
+                                    @(save.Description.Length > 100 ? save.Description.Substring(0, 100) + "..." : save.Description)
+                                }
+                            </td>
+                            <td>@save.UploadDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                            <td>@FileStorageService.FormatFileSize(save.FileSize)</td>
+                            <td>
+                                @if (editingSaveId == save.Id)
+                                {
+                                    <button @onclick="() => SaveEdit(save)" class="btn" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem;">
+                                        Save
+                                    </button>
+                                    <button @onclick="CancelEdit" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;">
+                                        Cancel
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button @onclick="() => StartEdit(save)" class="btn" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem;">
+                                        Edit
+                                    </button>
+                                    <button @onclick="() => ShowDeleteConfirm(save)" class="btn btn-danger" style="padding: 0.4rem 0.8rem;">
+                                        Delete
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (showDeleteDialog && saveToDelete != null)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div class="card" style="max-width: 500px; margin: 2rem;">
+            <div class="card-header">
+                <h3>Confirm Deletion</h3>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete this save file?</p>
+                <p><strong>@saveToDelete.FileName</strong></p>
+                <p class="text-red">This action cannot be undone!</p>
+                <button @onclick="ConfirmDelete" class="btn btn-danger" disabled="@deleting">
+                    @if (deleting)
+                    {
+                        <span>Deleting...</span>
+                    }
+                    else
+                    {
+                        <span>Yes, Delete</span>
+                    }
+                </button>
+                <button @onclick="CancelDelete" class="btn btn-secondary" style="margin-left: 0.5rem;" disabled="@deleting">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SaveFile>? saveFiles;
+    private bool loading = true;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private int? editingSaveId;
+    private string editDescription = string.Empty;
+
+    private bool showDeleteDialog = false;
+    private SaveFile? saveToDelete;
+    private bool deleting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSaveFiles();
+    }
+
+    private async Task LoadSaveFiles()
+    {
+        loading = true;
+        saveFiles = await SaveFileService.GetAllSavesAsync();
+        loading = false;
+    }
+
+    private void StartEdit(SaveFile save)
+    {
+        editingSaveId = save.Id;
+        editDescription = save.Description;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private void CancelEdit()
+    {
+        editingSaveId = null;
+        editDescription = string.Empty;
+    }
+
+    private async Task SaveEdit(SaveFile save)
+    {
+        try
+        {
+            save.Description = editDescription;
+            var success = await SaveFileService.UpdateSaveAsync(save);
+
+            if (success)
+            {
+                successMessage = "Save file updated successfully!";
+                editingSaveId = null;
+                editDescription = string.Empty;
+                await LoadSaveFiles();
+            }
+            else
+            {
+                errorMessage = "Failed to update save file.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    private void ShowDeleteConfirm(SaveFile save)
+    {
+        saveToDelete = save;
+        showDeleteDialog = true;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private void CancelDelete()
+    {
+        saveToDelete = null;
+        showDeleteDialog = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (saveToDelete == null) return;
+
+        deleting = true;
+
+        try
+        {
+            // Delete file from storage
+            await FileStorageService.DeleteFileAsync(saveToDelete.FilePath);
+
+            // Delete database record
+            var success = await SaveFileService.DeleteSaveAsync(saveToDelete.Id);
+
+            if (success)
+            {
+                successMessage = "Save file deleted successfully!";
+                await LoadSaveFiles();
+            }
+            else
+            {
+                errorMessage = "Failed to delete save file from database.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            deleting = false;
+            saveToDelete = null;
+            showDeleteDialog = false;
+        }
+    }
+}
