@@ -28,10 +28,10 @@ COPY --from=build /app/publish .
 # The application will create necessary directories at runtime
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8567
 
 # Set environment variables
-ENV ASPNETCORE_HTTP_PORTS=8080 \
+ENV ASPNETCORE_HTTP_PORTS=8567 \
     ASPNETCORE_ENVIRONMENT=Production \
     APP_VERSION=${VERSION}
 
@@ -43,7 +43,7 @@ LABEL org.opencontainers.image.title="Madtorio" \
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/ || exit 1
+    CMD curl -f http://localhost:8567/ || exit 1
 
 # Entry point
 ENTRYPOINT ["dotnet", "Madtorio.dll"]
