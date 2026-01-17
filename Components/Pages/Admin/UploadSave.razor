@@ -1,12 +1,18 @@
 @page "/admin/upload"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
 @using Madtorio.Data.Models
 @attribute [Authorize(Roles = "Admin")]
 @inject Madtorio.Services.ISaveFileService SaveFileService
 @inject Madtorio.Services.IFileStorageService FileStorageService
+@inject Madtorio.Services.IChunkedFileUploadService ChunkedUploadService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject ILogger<UploadSave> Logger
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
 <PageTitle>Upload Save - Admin - Madtorio</PageTitle>
 
@@ -25,16 +31,18 @@
         {
             <div class="alert alert-success">
                 @successMessage
+                <br />
+                <a href="/admin/manage" class="btn btn-sm mt-2">Go to Manage Saves</a>
             </div>
         }
 
-        <EditForm Model="@uploadModel" OnValidSubmit="@HandleUpload">
+        <EditForm Model="@uploadModel" OnValidSubmit="@HandleUpload" FormName="uploadSaveForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div class="form-group mb-3">
                 <label for="file" class="form-label">Select Save File (.zip only, max 500MB)</label>
-                <InputFile id="file" OnChange="@OnFileSelected" accept=".zip" class="form-control" disabled="@uploading" />
+                <InputFile id="saveFileInput" OnChange="@OnFileSelected" accept=".zip" class="form-control" disabled="@uploading" />
                 @if (selectedFile != null)
                 {
                     <small class="text-orange">Selected: @selectedFile.Name (@FileStorageService.FormatFileSize(selectedFile.Size))</small>
@@ -48,8 +56,26 @@
 
             @if (uploading)
             {
-                <div class="spinner"></div>
-                <p>Uploading file... Please wait, this may take a while for large files.</p>
+                <div class="progress mb-3" style="height: 30px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         role="progressbar"
+                         style="width: @(uploadProgress)%">
+                        @uploadProgress%
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <div class="spinner-border spinner-border-sm"></div>
+                    <strong>@uploadStatus</strong>
+                    @if (totalChunks > 0)
+                    {
+                        <br /><small>Chunk @currentChunk of @totalChunks</small>
+                    }
+                    @if (uploadTimer != null)
+                    {
+                        <br /><small>Elapsed: @uploadTimer.Elapsed.ToString(@"mm\:ss")</small>
+                    }
+                    <br /><small>Please keep this page open. Large files may take several minutes.</small>
+                </div>
             }
             else
             {
@@ -70,51 +96,186 @@
     private bool uploading = false;
     private string? errorMessage;
     private string? successMessage;
+    private int uploadProgress = 0;
+    private string uploadStatus = "";
+    private System.Diagnostics.Stopwatch? uploadTimer;
+    private int currentChunk = 0;
+    private int totalChunks = 0;
+    private string? currentUploadId;
+    private IJSObjectReference? _jsModule;
 
-    private void OnFileSelected(InputFileChangeEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chunked-upload.js");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule != null)
+        {
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit already disconnected, ignore
+            }
+        }
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
     {
         selectedFile = e.File;
         uploadModel.FileName = selectedFile.Name;
         errorMessage = null;
         successMessage = null;
-        StateHasChanged(); // Force UI update to enable the button
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleUpload()
     {
         if (selectedFile == null)
         {
-            errorMessage = "Please select a file to upload.";
+            errorMessage = "Please select a file.";
             return;
         }
 
         if (string.IsNullOrWhiteSpace(uploadModel.Description))
         {
-            errorMessage = "Please provide a description for the save file.";
+            errorMessage = "Please provide a description.";
+            return;
+        }
+
+        if (_jsModule == null)
+        {
+            errorMessage = "JavaScript module not loaded. Please refresh.";
             return;
         }
 
         uploading = true;
+        uploadProgress = 0;
+        uploadStatus = "Preparing upload...";
         errorMessage = null;
         successMessage = null;
+        uploadTimer = System.Diagnostics.Stopwatch.StartNew();
 
         try
         {
-            // Save file to storage
-            var (success, filePath, error) = await FileStorageService.SaveFileAsync(selectedFile);
+            // Get current user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userName = authState.User.Identity?.Name ?? "Unknown";
 
-            if (!success || filePath == null)
+            // Initiate chunked upload
+            currentUploadId = await ChunkedUploadService.InitiateUploadAsync(
+                selectedFile.Name,
+                selectedFile.Size,
+                userName);
+
+            uploadStatus = "Starting chunked upload...";
+            await InvokeAsync(StateHasChanged);
+
+            // Calculate chunks
+            const int chunkSize = 10485760; // 10MB (safe for SignalR/WebSocket transport)
+            totalChunks = (int)Math.Ceiling((double)selectedFile.Size / chunkSize);
+
+            Logger.LogInformation("Starting chunked upload: {UploadId}, File: {FileName} ({FileSize} bytes), Chunks: {TotalChunks}",
+                currentUploadId, selectedFile.Name, selectedFile.Size, totalChunks);
+
+            // Upload chunks using Blazor's stream API
+            using var fileStream = selectedFile.OpenReadStream(maxAllowedSize: 524288000);
+
+            for (int i = 0; i < totalChunks; i++)
             {
-                errorMessage = error ?? "Failed to save file.";
+                currentChunk = i + 1;
+                uploadStatus = $"Uploading chunk {currentChunk} of {totalChunks}...";
+                uploadProgress = (int)((double)i / totalChunks * 90); // Reserve 10% for finalization
+                await InvokeAsync(StateHasChanged);
+
+                Logger.LogDebug("Reading chunk {ChunkIndex}/{TotalChunks} from stream", currentChunk, totalChunks);
+
+                // Read chunk from stream
+                byte[] chunkData;
+                try
+                {
+                    var actualChunkSize = (int)Math.Min(chunkSize, selectedFile.Size - (i * chunkSize));
+                    chunkData = new byte[actualChunkSize];
+
+                    // Read the full chunk - Stream.ReadAsync may not read all bytes in one call
+                    int totalBytesRead = 0;
+                    while (totalBytesRead < actualChunkSize)
+                    {
+                        var bytesRead = await fileStream.ReadAsync(chunkData, totalBytesRead, actualChunkSize - totalBytesRead);
+
+                        if (bytesRead == 0)
+                        {
+                            Logger.LogError("Stream ended after {BytesRead} bytes but expected {ExpectedBytes}", totalBytesRead, actualChunkSize);
+                            errorMessage = $"Failed to read complete chunk {currentChunk}: Stream ended unexpectedly";
+                            await ChunkedUploadService.CancelUploadAsync(currentUploadId);
+                            uploadTimer?.Stop();
+                            uploading = false;
+                            return;
+                        }
+
+                        totalBytesRead += bytesRead;
+                    }
+
+                    Logger.LogDebug("Chunk {ChunkIndex} read: {ChunkSize} bytes", currentChunk, chunkData.Length);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to read chunk {ChunkIndex} from stream", currentChunk);
+                    errorMessage = $"Failed to read chunk {currentChunk}: {ex.Message}";
+                    await ChunkedUploadService.CancelUploadAsync(currentUploadId);
+                    uploadTimer?.Stop();
+                    uploading = false;
+                    return;
+                }
+
+                // Upload chunk
+                Logger.LogInformation("Uploading chunk {ChunkIndex} to server ({ChunkSize} bytes)", currentChunk, chunkData.Length);
+                var (success, error) = await ChunkedUploadService.UploadChunkAsync(currentUploadId, i, chunkData);
+
+                if (!success)
+                {
+                    Logger.LogError("Chunk {ChunkIndex} upload failed: {Error}", currentChunk, error);
+                    errorMessage = $"Chunk {currentChunk} failed: {error}";
+                    await ChunkedUploadService.CancelUploadAsync(currentUploadId);
+                    uploadTimer?.Stop();
+                    uploading = false;
+                    return;
+                }
+
+                Logger.LogInformation("Chunk {ChunkIndex}/{TotalChunks} uploaded successfully", currentChunk, totalChunks);
+            }
+
+            // Finalize upload
+            uploadProgress = 95;
+            uploadStatus = "Assembling file on server...";
+            await InvokeAsync(StateHasChanged);
+
+            Logger.LogInformation("All chunks uploaded, finalizing {UploadId}", currentUploadId);
+            var (finalSuccess, filePath, finalError) = await ChunkedUploadService.FinalizeUploadAsync(currentUploadId);
+
+            if (!finalSuccess || filePath == null)
+            {
+                Logger.LogError("Finalization failed for {UploadId}: {Error}", currentUploadId, finalError);
+                errorMessage = finalError ?? "Failed to finalize upload.";
+                uploadTimer?.Stop();
                 uploading = false;
                 return;
             }
 
-            // Get current user
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var userName = authState.User.Identity?.Name;
+            Logger.LogInformation("Upload {UploadId} finalized successfully: {FilePath}", currentUploadId, filePath);
 
             // Create database record
+            uploadProgress = 98;
+            uploadStatus = "Creating database record...";
+            await InvokeAsync(StateHasChanged);
+
             var saveFile = new SaveFile
             {
                 FileName = uploadModel.FileName,
@@ -127,21 +288,41 @@
 
             await SaveFileService.CreateSaveAsync(saveFile);
 
-            successMessage = "Save file uploaded successfully!";
+            uploadProgress = 100;
+            uploadStatus = "Upload complete!";
+            uploadTimer?.Stop();
+
+            Logger.LogInformation(
+                "Chunked upload completed: {FileName} ({FileSize} bytes) by {User} in {Duration}s",
+                saveFile.FileName,
+                saveFile.FileSize,
+                userName,
+                uploadTimer?.Elapsed.TotalSeconds ?? 0);
+
+            successMessage = $"Save file uploaded successfully in {uploadTimer?.Elapsed.TotalSeconds:F1} seconds!";
             uploadModel = new UploadModel();
             selectedFile = null;
-
-            // Redirect to manage page after 2 seconds
-            await Task.Delay(2000);
-            NavigationManager.NavigateTo("/admin/manage");
         }
         catch (Exception ex)
         {
-            errorMessage = $"An error occurred: {ex.Message}";
+            uploadTimer?.Stop();
+            Logger.LogError(ex, "Chunked upload failed after {Duration}s", uploadTimer?.Elapsed.TotalSeconds ?? 0);
+
+            errorMessage = $"Upload failed: {ex.Message}";
+
+            if (currentUploadId != null)
+            {
+                await ChunkedUploadService.CancelUploadAsync(currentUploadId);
+            }
         }
         finally
         {
             uploading = false;
+            uploadProgress = 0;
+            uploadStatus = "";
+            currentChunk = 0;
+            totalChunks = 0;
+            currentUploadId = null;
         }
     }
 

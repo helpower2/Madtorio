@@ -9,9 +9,38 @@ using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel for chunked uploads (100MB matches Cloudflare limit)
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 104857600; // 100MB
+    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
+    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+});
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Add controller support for download API
+builder.Services.AddControllers();
+
+// Configure Blazor Server circuit options for chunked uploads
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(options =>
+    {
+        options.DisconnectedCircuitMaxRetained = 100;
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+        options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(10);
+        options.MaxBufferedUnacknowledgedRenderBatches = 20;
+    })
+    .AddHubOptions(options =>
+    {
+        options.ClientTimeoutInterval = TimeSpan.FromMinutes(10); // Long timeout for chunked uploads
+        options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        options.MaximumReceiveMessageSize = 104857600; // 100MB to match Kestrel
+        options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    });
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -59,6 +88,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // Register custom services
 builder.Services.AddScoped<Madtorio.Services.ISaveFileService, Madtorio.Services.SaveFileService>();
 builder.Services.AddScoped<Madtorio.Services.IFileStorageService, Madtorio.Services.FileStorageService>();
+builder.Services.AddScoped<Madtorio.Services.IChunkedFileUploadService, Madtorio.Services.ChunkedFileUploadService>();
 
 var app = builder.Build();
 
@@ -98,5 +128,8 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Map controller endpoints for downloads API
+app.MapControllers();
 
 app.Run();

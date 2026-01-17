@@ -30,8 +30,8 @@ public class FileStorageService : IFileStorageService
                 return (false, null, "Only .zip files are allowed.");
             }
 
-            // Create upload directory if it doesn't exist
-            var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", subdirectory);
+            // Create upload directory if it doesn't exist - using App_Data to prevent hot reload
+            var uploadPath = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads", subdirectory);
             Directory.CreateDirectory(uploadPath);
 
             // Generate unique filename
@@ -45,11 +45,10 @@ public class FileStorageService : IFileStorageService
                 await file.OpenReadStream(MaxFileSize).CopyToAsync(fileStream);
             }
 
-            // Return relative path for database storage
-            var relativePath = Path.Combine("uploads", subdirectory, uniqueFileName).Replace("\\", "/");
-            _logger.LogInformation("File saved successfully: {FilePath}", relativePath);
+            // Return just the filename for database storage
+            _logger.LogInformation("File saved successfully: {FileName}", uniqueFileName);
 
-            return (true, relativePath, null);
+            return (true, uniqueFileName, null);
         }
         catch (Exception ex)
         {
@@ -58,33 +57,36 @@ public class FileStorageService : IFileStorageService
         }
     }
 
-    public async Task<bool> DeleteFileAsync(string filePath)
+    public async Task<bool> DeleteFileAsync(string fileName)
     {
         try
         {
-            var fullPath = Path.Combine(_environment.WebRootPath, filePath);
+            // Changed to use ContentRootPath/App_Data - fileName is just the filename now
+            var fullPath = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads", "saves", fileName);
 
             if (File.Exists(fullPath))
             {
                 await Task.Run(() => File.Delete(fullPath));
-                _logger.LogInformation("File deleted successfully: {FilePath}", filePath);
+                _logger.LogInformation("File deleted successfully: {FileName}", fileName);
                 return true;
             }
 
-            _logger.LogWarning("File not found for deletion: {FilePath}", filePath);
+            _logger.LogWarning("File not found for deletion: {FileName}", fileName);
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting file: {FilePath}", filePath);
+            _logger.LogError(ex, "Error deleting file: {FileName}", fileName);
             return false;
         }
     }
 
-    public string GetDownloadUrl(string filePath)
+    public string GetDownloadUrl(string filePathOrName)
     {
-        // Return URL path (without leading slash if filePath already has it)
-        return filePath.StartsWith("/") ? filePath : $"/{filePath}";
+        // Extract filename if it's a path (for backwards compatibility)
+        var fileName = Path.GetFileName(filePathOrName);
+        // Return API endpoint URL instead of static file path
+        return $"/api/downloads/{fileName}";
     }
 
     public bool ValidateFileType(string fileName, string[] allowedExtensions)
