@@ -61,18 +61,21 @@ jobs:
           # Determine version
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
+            DOCKER_TAG_VERSION=$VERSION
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "is_tag=true" >> $GITHUB_OUTPUT
           else
             VERSION="1.0.0+main.${GITHUB_SHA::7}"
+            # Docker tags don't allow '+', use '-' instead
+            DOCKER_TAG_VERSION="1.0.0-main.${GITHUB_SHA::7}"
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "is_tag=false" >> $GITHUB_OUTPUT
           fi
 
-          # Build tags
+          # Build tags (use DOCKER_TAG_VERSION for tags)
           TAGS="${{ env.DOCKER_IMAGE }}:latest"
           TAGS="$TAGS,${{ env.DOCKER_IMAGE }}:stable"
-          TAGS="$TAGS,${{ env.DOCKER_IMAGE }}:$VERSION"
+          TAGS="$TAGS,${{ env.DOCKER_IMAGE }}:$DOCKER_TAG_VERSION"
 
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             # Add semantic version tags for git tags
