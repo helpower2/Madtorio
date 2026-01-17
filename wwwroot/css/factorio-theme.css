@@ -3,6 +3,7 @@
 :root {
     /* Official Factorio.com Colors */
     --factorio-bg: #201810;             /* Main body background */
+    --factorio-darker-bg: #181410;      /* Darker background variant */
     --factorio-panel: #313031;          /* Primary panel background */
     --factorio-panel-lighter: #414040;  /* Secondary panel background */
     --factorio-panel-dark: #242324;     /* Inset panel background */
@@ -156,6 +157,13 @@ a:hover {
     border-radius: 0;
     padding: 0;
     margin-bottom: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    background-color: var(--factorio-panel);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
 }
 
 .card-header {
@@ -170,6 +178,7 @@ a:hover {
 .card-body {
     background: var(--factorio-panel);
     padding: 1.5rem;
+    color: var(--factorio-text);
 }
 
 /* Forms - Inset Style */
@@ -348,7 +357,7 @@ tr:hover td {
 }
 
 .save-file-card .description {
-    color: var(--factorio-light-text);
+    color: var(--factorio-text);
     margin-bottom: 1rem;
     line-height: 1.6;
 }

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(tree:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nImplement chunked upload and move files outside wwwroot to prevent hot reload\n\n- Move uploaded files from wwwroot/uploads to App_Data/uploads to prevent dotnet watch hot reload triggers\n- Implement chunked file upload with 10MB chunks for large files \\(up to 500MB\\)\n- Create DownloadsController API endpoint to serve files from App_Data with original filenames\n- Add comprehensive logging for upload progress and download tracking\n- Fix Stream.ReadAsync to read full chunks with proper loop\n- Update FileStorageService to use App_Data storage location\n- Register controller support in Program.cs for download API\n\nBenefits:\n- No more hot reload interruptions during uploads\n- Better security: files not directly web-accessible\n- Download tracking and validation\n- Support for files over 100MB \\(Cloudflare compatible\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }

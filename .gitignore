@@ -14,3 +14,7 @@ obj/
 
 # Misc
 nul
+
+# Save files and uploads
+App_Data/
+wwwroot/uploads/

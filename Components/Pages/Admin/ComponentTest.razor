@@ -1,0 +1,30 @@
+@page "/admin/component-test"
+@using Microsoft.AspNetCore.Authorization
+@using Madtorio.Data.Models
+@using Madtorio.Components.Shared
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Component Test - Madtorio</PageTitle>
+
+<h1>Component Test Page</h1>
+<p>Use this page to test and preview components during development.</p>
+
+<hr />
+
+<section>
+    <h2>SaveFileCard</h2>
+    <SaveFileCard SaveFile="@_sampleSaveFile" />
+</section>
+
+@code {
+    private SaveFile _sampleSaveFile = new()
+    {
+        Id = 1,
+        FileName = "sample-save.zip",
+        Description = "This is a sample save file for testing the SaveFileCard component.",
+        FilePath = "/uploads/saves/sample-save.zip",
+        UploadDate = DateTime.UtcNow.AddDays(-3),
+        FileSize = 15728640, // 15 MB
+        UploadedBy = "admin@madtorio.com"
+    };
+}
