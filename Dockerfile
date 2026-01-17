@@ -1,6 +1,5 @@
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG VERSION=dev
 WORKDIR /src
 
 # Copy csproj and restore dependencies (layer caching)
@@ -11,7 +10,8 @@ RUN dotnet restore "Madtorio.csproj"
 COPY . .
 
 # Build and publish in Release configuration
-RUN dotnet publish "Madtorio.csproj" -c Release -o /app/publish --no-restore
+ARG VERSION=dev
+RUN dotnet publish "Madtorio.csproj" -c Release -o /app/publish --no-restore -p:InformationalVersion=${VERSION}
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
