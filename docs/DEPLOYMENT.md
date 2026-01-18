@@ -133,6 +133,8 @@ Always mount `/app/data` to a persistent location on the host.
 
 ### Template Installation
 
+**Important**: Madtorio images are hosted on **Docker Hub** (`helpower2/madtorio:latest`). The template is configured to use Docker Hub for proper update detection.
+
 #### Method 1: Community Applications (Recommended)
 
 1. Install "Community Applications" plugin (if not already installed)
@@ -143,7 +145,15 @@ Always mount `/app/data` to a persistent location on the host.
 
 #### Method 2: Manual Template Import
 
-1. Download `unraid-template.xml` from repository
+**From GitHub (Recommended)**:
+1. In Unraid web UI, go to **Docker** tab
+2. Click **Add Container**
+3. Template URL: `https://raw.githubusercontent.com/helpower2/Madtorio/main/unraid-template.xml`
+4. Configure settings
+5. Click **Apply**
+
+**From Downloaded File**:
+1. Download `unraid-template.xml` from [GitHub repository](https://github.com/helpower2/Madtorio)
 2. In Unraid web UI, go to **Docker** tab
 3. Click **Add Container**
 4. Click **Template** dropdown → **Import Template**
@@ -217,6 +227,42 @@ tar -xzf /mnt/user/backups/madtorio-backup-20260117.tar.gz \
 2. Check logs: `docker logs madtorio`
 3. Verify port not blocked by firewall
 4. Test from Unraid server: `curl http://localhost:8567`
+
+#### Update Detection Not Working
+
+**Symptom**: "Apply update" button not appearing in Unraid Docker tab
+
+**Solution**:
+
+1. **Verify correct Docker Hub repository**:
+   - Edit container settings
+   - Check **Repository** field shows: `helpower2/madtorio:latest`
+   - Check **Registry** field shows: `https://hub.docker.com/repository/docker/helpower2/madtorio/`
+   - If incorrect, update these fields and apply changes
+
+2. **Force update check**:
+   - In Docker tab, click "Check for Updates" button
+   - Wait 5 minutes for Unraid to refresh Docker Hub cache
+   - Try clicking "Check for Updates" again
+
+3. **Manual update** (if automatic detection still fails):
+   ```bash
+   docker pull helpower2/madtorio:latest
+   docker stop madtorio
+   docker rm madtorio
+   # Then recreate container from template in Unraid UI
+   ```
+
+4. **Re-import template** (if using old template):
+   - Stop and remove existing container (data is preserved in `/mnt/user/appdata/madtorio`)
+   - Import fresh template from GitHub:
+     ```
+     https://raw.githubusercontent.com/helpower2/Madtorio/main/unraid-template.xml
+     ```
+   - Configure with same settings
+   - Apply
+
+**Note**: The template must point to Docker Hub (`helpower2/madtorio`) where CI/CD pushes images. Older templates may have referenced GitHub Container Registry (ghcr.io) which does not host Madtorio images.
 
 ---
 

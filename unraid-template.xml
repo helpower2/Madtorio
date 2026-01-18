@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>madtorio</Name>
-  <Repository>ghcr.io/helpower2/madtorio:latest</Repository>
-  <Registry>https://ghcr.io/</Registry>
+  <Repository>helpower2/madtorio:latest</Repository>
+  <Registry>https://hub.docker.com/repository/docker/helpower2/madtorio/</Registry>
   <Network>bridge</Network>
   <Privileged>false</Privileged>
   <Support>https://github.com/helpower2/madtorio/issues</Support>
