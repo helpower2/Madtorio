@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Madtorio.Services;
+using System.Security.Claims;
 
 namespace Madtorio.Controllers;
 
@@ -9,15 +10,18 @@ public class DownloadsController : ControllerBase
 {
     private readonly IWebHostEnvironment _environment;
     private readonly ISaveFileService _saveFileService;
+    private readonly IStatisticsService _statisticsService;
     private readonly ILogger<DownloadsController> _logger;
 
     public DownloadsController(
         IWebHostEnvironment environment,
         ISaveFileService saveFileService,
+        IStatisticsService statisticsService,
         ILogger<DownloadsController> logger)
     {
         _environment = environment;
         _saveFileService = saveFileService;
+        _statisticsService = statisticsService;
         _logger = logger;
     }
 
@@ -47,6 +51,13 @@ public class DownloadsController : ControllerBase
                 _logger.LogError("Physical file missing for save: {FileName}", fileName);
                 return NotFound("File not found on disk");
             }
+
+            // Log the download (GDPR-compliant - no PII)
+            var userId = User?.Identity?.IsAuthenticated == true
+                ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+                : null;
+
+            await _statisticsService.LogDownloadAsync(saveFile.Id, userId);
 
             _logger.LogInformation("Download started: {FileName} ({FileSize} bytes)",
                 saveFile.FileName, saveFile.FileSize);

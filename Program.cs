@@ -111,6 +111,7 @@ builder.Services.AddScoped<Madtorio.Services.ISaveFileService, Madtorio.Services
 builder.Services.AddScoped<Madtorio.Services.IFileStorageService, Madtorio.Services.FileStorageService>();
 builder.Services.AddScoped<Madtorio.Services.IChunkedFileUploadService, Madtorio.Services.ChunkedFileUploadService>();
 builder.Services.AddScoped<Madtorio.Services.IRulesService, Madtorio.Services.RulesService>();
+builder.Services.AddScoped<Madtorio.Services.IStatisticsService, Madtorio.Services.StatisticsService>();
 
 var app = builder.Build();
 
@@ -152,6 +153,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAntiforgery();
+
+// Page view tracking middleware (after routing, before endpoints)
+app.UseMiddleware<Madtorio.Middleware.PageViewMiddleware>();
 
 // Serve static files (required for Blazor JS in production/Docker)
 app.UseStaticFiles();

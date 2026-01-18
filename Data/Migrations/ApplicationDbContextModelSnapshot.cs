@@ -82,6 +82,52 @@ namespace Madtorio.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Madtorio.Data.Models.DownloadLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DownloadDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SaveFileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SaveFileId");
+
+                    b.ToTable("DownloadLogs");
+                });
+
+            modelBuilder.Entity("Madtorio.Data.Models.PageView", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PagePath")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ViewDate")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PageViews");
+                });
+
             modelBuilder.Entity("Madtorio.Data.Models.Rule", b =>
                 {
                     b.Property<int>("Id")
@@ -374,6 +420,17 @@ namespace Madtorio.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Madtorio.Data.Models.DownloadLog", b =>
+                {
+                    b.HasOne("Madtorio.Data.Models.SaveFile", "SaveFile")
+                        .WithMany("DownloadLogs")
+                        .HasForeignKey("SaveFileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SaveFile");
+                });
+
             modelBuilder.Entity("Madtorio.Data.Models.Rule", b =>
                 {
                     b.HasOne("Madtorio.Data.Models.RuleCategory", "Category")
@@ -490,6 +547,11 @@ namespace Madtorio.Migrations
             modelBuilder.Entity("Madtorio.Data.Models.RuleCategory", b =>
                 {
                     b.Navigation("Rules");
+                });
+
+            modelBuilder.Entity("Madtorio.Data.Models.SaveFile", b =>
+                {
+                    b.Navigation("DownloadLogs");
                 });
 #pragma warning restore 612, 618
         }

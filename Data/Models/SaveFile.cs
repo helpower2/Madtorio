@@ -28,4 +28,7 @@ public class SaveFile
 
     [StringLength(256)]
     public string? UploadedBy { get; set; }
+
+    // Navigation property for download tracking
+    public ICollection<DownloadLog> DownloadLogs { get; set; } = new List<DownloadLog>();
 }

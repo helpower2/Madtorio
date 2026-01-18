@@ -10,6 +10,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<RuleCategory> RuleCategories { get; set; }
     public DbSet<Rule> Rules { get; set; }
     public DbSet<ServerConfig> ServerConfigs { get; set; }
+    public DbSet<DownloadLog> DownloadLogs { get; set; }
+    public DbSet<PageView> PageViews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,5 +28,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<ServerConfig>()
             .HasIndex(sc => sc.Key)
             .IsUnique();
+
+        // DownloadLog-SaveFile relationship
+        modelBuilder.Entity<DownloadLog>()
+            .HasOne(dl => dl.SaveFile)
+            .WithMany(sf => sf.DownloadLogs)
+            .HasForeignKey(dl => dl.SaveFileId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

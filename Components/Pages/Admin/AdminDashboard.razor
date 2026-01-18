@@ -4,6 +4,7 @@
 @attribute [Authorize(Roles = "Admin")]
 @inject Madtorio.Services.ISaveFileService SaveFileService
 @inject Madtorio.Services.IFileStorageService FileStorageService
+@inject Madtorio.Services.IStatisticsService StatisticsService
 
 <PageTitle>Admin Dashboard - Madtorio</PageTitle>
 
@@ -16,82 +17,254 @@
 }
 else
 {
-    <div class="row">
-        <div class="col-md-4">
+    <!-- Row 1: Overview Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-header">
                     <h3>Total Save Files</h3>
                 </div>
                 <div class="card-body">
-                    <h2 class="text-orange">@totalSaves</h2>
+                    <h2 class="text-orange">@stats.TotalSaves</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-header">
-                    <h3>Total Storage Used</h3>
+                    <h3>Total Storage</h3>
                 </div>
                 <div class="card-body">
-                    <h2 class="text-orange">@FileStorageService.FormatFileSize(totalSize)</h2>
+                    <h2 class="text-orange">@FileStorageService.FormatFileSize(stats.TotalStorageBytes)</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-header">
-                    <h3>Quick Actions</h3>
+                    <h3>Total Downloads</h3>
                 </div>
                 <div class="card-body">
-                    <a href="/admin/upload" class="btn" style="margin-bottom: 0.5rem; width: 100%;">Upload New Save</a>
-                    <a href="/admin/manage" class="btn btn-secondary" style="margin-bottom: 0.5rem; width: 100%;">Manage Saves</a>
-                    <a href="/admin/rules" class="btn btn-secondary" style="width: 100%;">Manage Rules</a>
+                    <h2 class="text-orange">@stats.TotalDownloads</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Total Page Views</h3>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-orange">@stats.TotalPageViews</h2>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card mt-4">
-        <div class="card-header">
-            <h2>Recent Uploads</h2>
+    <!-- Row 2: Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <a href="/admin/upload" class="btn" style="margin-right: 0.5rem;">Upload New Save</a>
+                    <a href="/admin/manage" class="btn btn-secondary" style="margin-right: 0.5rem;">Manage Saves</a>
+                    <a href="/admin/rules" class="btn btn-secondary">Manage Rules</a>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            @if (recentSaves == null || !recentSaves.Any())
-            {
-                <p>No save files uploaded yet.</p>
-            }
-            else
-            {
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Filename</th>
-                            <th>Upload Date</th>
-                            <th>Size</th>
-                            <th>Uploaded By</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var save in recentSaves.Take(10))
-                        {
-                            <tr>
-                                <td>@save.FileName</td>
-                                <td>@save.UploadDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
-                                <td>@FileStorageService.FormatFileSize(save.FileSize)</td>
-                                <td>@(save.UploadedBy ?? "Unknown")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
+    </div>
+
+    <!-- Row 3: Top Downloads & Page Views -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Top Downloaded Files (Last 30 Days)</h3>
+                </div>
+                <div class="card-body">
+                    @if (stats.TopDownloads == null || !stats.TopDownloads.Any())
+                    {
+                        <p>No downloads yet.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Downloads</th>
+                                    <th>Last Downloaded</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var file in stats.TopDownloads)
+                                {
+                                    <tr>
+                                        <td>@file.FileName</td>
+                                        <td>@file.DownloadCount</td>
+                                        <td>@(file.LastDownloaded?.ToLocalTime().ToString("MMM dd, yyyy HH:mm") ?? "N/A")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Page View Breakdown</h3>
+                </div>
+                <div class="card-body">
+                    @if (stats.PageViewsByPath == null || !stats.PageViewsByPath.Any())
+                    {
+                        <p>No page views tracked yet.</p>
+                    }
+                    else
+                    {
+                        <ul style="list-style: none; padding: 0;">
+                            @foreach (var kvp in stats.PageViewsByPath.OrderByDescending(p => p.Value))
+                            {
+                                <li style="margin-bottom: 0.5rem;">
+                                    <strong>@kvp.Key</strong>: <span class="text-orange">@kvp.Value</span> views
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 4: Recent Downloads -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Downloads</h3>
+                </div>
+                <div class="card-body">
+                    @if (stats.RecentDownloads == null || !stats.RecentDownloads.Any())
+                    {
+                        <p>No downloads yet.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Downloaded By</th>
+                                    <th>Download Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var download in stats.RecentDownloads)
+                                {
+                                    <tr>
+                                        <td>@download.SaveFile?.FileName</td>
+                                        <td>@(download.UserId != null ? "Authenticated User" : "Anonymous")</td>
+                                        <td>@download.DownloadDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 5: Last 7 Days Activity -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Last 7 Days Activity</h3>
+                </div>
+                <div class="card-body">
+                    @if (stats.Last7Days == null || !stats.Last7Days.Any())
+                    {
+                        <p>No activity data available.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Uploads</th>
+                                    <th>Downloads</th>
+                                    <th>Page Views</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var day in stats.Last7Days)
+                                {
+                                    <tr>
+                                        <td>@day.Date.ToString("MMM dd, yyyy")</td>
+                                        <td>@day.Uploads</td>
+                                        <td>@day.Downloads</td>
+                                        <td>@day.PageViews</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 6: Recent Uploads -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Uploads</h3>
+                </div>
+                <div class="card-body">
+                    @if (recentSaves == null || !recentSaves.Any())
+                    {
+                        <p>No save files uploaded yet.</p>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Upload Date</th>
+                                    <th>Size</th>
+                                    <th>Uploaded By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var save in recentSaves.Take(10))
+                                {
+                                    <tr>
+                                        <td>@save.FileName</td>
+                                        <td>@save.UploadDate.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>@FileStorageService.FormatFileSize(save.FileSize)</td>
+                                        <td>@(save.UploadedBy ?? "Unknown")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 }
 
 @code {
     private bool loading = true;
-    private int totalSaves;
-    private long totalSize;
+    private Madtorio.Data.Models.DashboardStatistics stats = new();
     private List<Madtorio.Data.Models.SaveFile>? recentSaves;
 
     protected override async Task OnInitializedAsync()
@@ -102,9 +275,7 @@ else
     private async Task LoadDashboardData()
     {
         loading = true;
-        var stats = await SaveFileService.GetStatisticsAsync();
-        totalSaves = stats.totalSaves;
-        totalSize = stats.totalSize;
+        stats = await StatisticsService.GetDashboardStatisticsAsync();
         recentSaves = await SaveFileService.GetAllSavesAsync();
         loading = false;
     }

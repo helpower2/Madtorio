@@ -231,6 +231,9 @@ The Rules System is an admin-editable database-driven feature for managing commu
 
 ## Development Guidelines
 
+- When implementing a feature, switch to or create a dedicated git branch for that feature
+- Implement tests for all new features and functionality
+- Update this CLAUDE.md file when making architectural changes, adding new services, or implementing significant features
 - When creating new components, add them to the component test page (`/admin/component-test`)
 - Only git commit when a feature is complete and tested
 - Rules system follows the same service pattern as SaveFiles - interface-based DI with comprehensive CRUD operations
