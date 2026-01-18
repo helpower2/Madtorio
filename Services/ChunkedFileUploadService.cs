@@ -151,7 +151,7 @@ public class ChunkedFileUploadService : IChunkedFileUploadService
     }
 
     private string GetTempUploadPath(string uploadId) =>
-        Path.Combine(_environment.ContentRootPath, "data", "uploads", "temp", uploadId);
+        Path.Combine(_environment.ContentRootPath, "AppData", "uploads", "temp", uploadId);
 
     private string GetChunkPath(string uploadId, int chunkIndex) =>
         Path.Combine(GetTempUploadPath(uploadId), $"chunk_{chunkIndex:D4}.tmp");
@@ -160,7 +160,7 @@ public class ChunkedFileUploadService : IChunkedFileUploadService
     {
         var extension = Path.GetExtension(originalFileName);
         var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-        // Use 'data' directory for Docker compatibility (mapped to persistent volume)
-        return Path.Combine(_environment.ContentRootPath, "data", "uploads", "saves", uniqueFileName);
+        // Use 'AppData' directory for Docker compatibility (mapped to persistent volume)
+        return Path.Combine(_environment.ContentRootPath, "AppData", "uploads", "saves", uniqueFileName);
     }
 }

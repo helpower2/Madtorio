@@ -11,9 +11,9 @@ services:
       - ASPNETCORE_HTTP_PORTS=8567
       - AdminEmail=${ADMIN_EMAIL:-admin@madtorio.com}
       - AdminPassword=${ADMIN_PASSWORD:-Madtorio2026!}
-      - ConnectionStrings__DefaultConnection=DataSource=/app/data/madtorio.db;Cache=Shared
+      - ConnectionStrings__DefaultConnection=DataSource=/app/AppData/madtorio.db;Cache=Shared
     volumes:
-      - ./data:/app/data
+      - ./AppData:/app/AppData
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
@@ -24,7 +24,7 @@ services:
 
 # Alternative: use named volume instead of bind mount
 # volumes:
-#   madtorio-data:
+#   madtorio-appdata:
 #
 # Then change the volume mount to:
-#   - madtorio-data:/app/data
+#   - madtorio-appdata:/app/AppData

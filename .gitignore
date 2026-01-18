@@ -15,9 +15,6 @@ obj/
 # Misc
 nul
 
-# Save files and uploads (runtime data storage - lowercase only)
-# Note: Data/ (uppercase) contains source code and should be tracked
-[Dd]ata/
-[Aa]pp_[Dd]ata/
-!Data/
-!Data/**
+# Runtime application data storage
+AppData/
+App_Data/

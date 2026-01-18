@@ -73,7 +73,7 @@ Admin password must meet these requirements:
 The SQLite database connection string is configured in [appsettings.Production.json](appsettings.Production.json):
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "DataSource=/app/data/madtorio.db;Cache=Shared"
+  "DefaultConnection": "DataSource=/app/AppData/madtorio.db;Cache=Shared"
 }
 ```
 
@@ -90,12 +90,12 @@ ConnectionStrings__DefaultConnection=DataSource=/custom/path/madtorio.db;Cache=S
 
 2. **Create app directory**:
    ```bash
-   mkdir -p /mnt/user/appdata/madtorio
-   cd /mnt/user/appdata/madtorio
+   mkdir -p /mnt/user/appAppData/madtorio
+   cd /mnt/user/appAppData/madtorio
    ```
 
 3. **Copy files** to Unraid:
-   - Copy entire Madtorio project directory to `/mnt/user/appdata/madtorio/`
+   - Copy entire Madtorio project directory to `/mnt/user/appAppData/madtorio/`
    - Or use git: `git clone <your-repo-url> .`
 
 4. **Configure environment**:
@@ -131,7 +131,7 @@ ConnectionStrings__DefaultConnection=DataSource=/custom/path/madtorio.db;Cache=S
 **Volume Mappings:**
 | Container Path | Host Path | Mode |
 |----------------|-----------|------|
-| `/app/data` | `/mnt/user/appdata/madtorio/data` | Read/Write |
+| `/ap./AppData` | `/mnt/user/appAppData/madtori./AppData` | Read/Write |
 
 **Environment Variables:**
 | Variable | Value |
@@ -157,10 +157,10 @@ After starting the container, access Madtorio from Unraid:
 
 ### Directory Structure
 
-The persistent data volume (`/app/data`) contains:
+The persistent data volume (`/ap./AppData`) contains:
 
 ```
-/app/data/
+/ap./AppData/
 ├── madtorio.db          # SQLite database (< 100MB typical)
 ├── madtorio.db-shm      # SQLite shared memory file
 ├── madtorio.db-wal      # SQLite write-ahead log
@@ -180,10 +180,10 @@ Backup the entire data directory:
 
 ```bash
 # On host machine
-tar -czf madtorio-backup-$(date +%Y%m%d).tar.gz /mnt/user/appdata/madtorio/data/
+tar -czf madtorio-backup-$(date +%Y%m%d).tar.gz /mnt/user/appAppData/madtori./AppData/
 
 # Or on Unraid
-tar -czf /mnt/user/backups/madtorio-backup-$(date +%Y%m%d).tar.gz /mnt/user/appdata/madtorio/data/
+tar -czf /mnt/user/backups/madtorio-backup-$(date +%Y%m%d).tar.gz /mnt/user/appAppData/madtori./AppData/
 ```
 
 #### Selective Backup
@@ -192,10 +192,10 @@ Backup only essential data (exclude temp files):
 
 ```bash
 # Database only
-cp /mnt/user/appdata/madtorio/data/madtorio.db /mnt/user/backups/
+cp /mnt/user/appAppData/madtorio/AppData/madtorio.db /mnt/user/backups/
 
 # Database + saves (exclude temp)
-rsync -av --exclude='temp/' /mnt/user/appdata/madtorio/data/ /mnt/user/backups/madtorio-data/
+rsync -av --exclude='temp/' /mnt/user/appAppData/madtori./AppData/ /mnt/user/backups/madtorio-AppData/
 ```
 
 ### Restore from Backup
@@ -208,7 +208,7 @@ docker compose down
 tar -xzf madtorio-backup-20260117.tar.gz -C /
 
 # Or for Unraid
-tar -xzf /mnt/user/backups/madtorio-backup-20260117.tar.gz -C /mnt/user/appdata/madtorio/
+tar -xzf /mnt/user/backups/madtorio-backup-20260117.tar.gz -C /mnt/user/appAppData/madtorio/
 
 # Start container
 docker compose up -d
@@ -293,8 +293,8 @@ The container runs as the built-in `app` user (UID 1654) from Microsoft's .NET b
 
 ```bash
 # On Unraid or Linux host
-chown -R 1654:1654 /mnt/user/appdata/madtorio/data
-chmod -R 755 /mnt/user/appdata/madtorio/data
+chown -R 1654:1654 /mnt/user/appAppData/madtori./AppData
+chmod -R 755 /mnt/user/appAppData/madtori./AppData
 ```
 
 ## Troubleshooting
@@ -319,7 +319,7 @@ docker logs madtorio
 2. **Permission denied**: Volume mount permission issues
    - Solution: Fix ownership
    ```bash
-   chown -R 1654:1654 /mnt/user/appdata/madtorio/data
+   chown -R 1654:1654 /mnt/user/appAppData/madtori./AppData
    ```
 
 3. **Database locked**: Another process accessing database
@@ -327,14 +327,14 @@ docker logs madtorio
 
 ### File Upload Fails
 
-1. **Check volume mount**: Ensure `/app/data` is writable
+1. **Check volume mount**: Ensure `/ap./AppData` is writable
    ```bash
-   docker exec -it madtorio ls -la /app/data/uploads/
+   docker exec -it madtorio ls -la /ap./AppData/uploads/
    ```
 
 2. **Check disk space**: Ensure host has enough free space
    ```bash
-   df -h /mnt/user/appdata/madtorio/
+   df -h /mnt/user/appAppData/madtorio/
    ```
 
 3. **Check file size**: Files over 500MB are rejected
@@ -372,12 +372,12 @@ If database becomes corrupted:
 
 2. **Restore from backup**:
    ```bash
-   cp /mnt/user/backups/madtorio.db /mnt/user/appdata/madtorio/data/
+   cp /mnt/user/backups/madtorio.db /mnt/user/appAppData/madtori./AppData/
    ```
 
 3. **Or rebuild database** (loses all data):
    ```bash
-   rm /mnt/user/appdata/madtorio/data/madtorio.db*
+   rm /mnt/user/appAppData/madtorio/AppData/madtorio.db*
    docker compose up -d
    # Database will be recreated with default admin user
    ```
@@ -388,7 +388,7 @@ If database becomes corrupted:
 
 1. **Pull latest code**:
    ```bash
-   cd /mnt/user/appdata/madtorio
+   cd /mnt/user/appAppData/madtorio
    git pull origin main
    ```
 
@@ -426,21 +426,21 @@ Database migrations run automatically on startup. No manual intervention needed.
    ```bash
    # On Unraid
    docker compose down
-   cp madtorio-export.db /mnt/user/appdata/madtorio/data/madtorio.db
+   cp madtorio-export.db /mnt/user/appAppData/madtorio/AppData/madtorio.db
    docker compose up -d
    ```
 
 3. **Migrate save files**:
    ```bash
-   # Copy App_Data/uploads/saves/* to data/uploads/saves/
-   cp -r App_Data/uploads/saves/* /mnt/user/appdata/madtorio/data/uploads/saves/
+   # Copy App_Data/uploads/saves/* to AppData/uploads/saves/
+   cp -r App_Data/uploads/saves/* /mnt/user/appAppData/madtori./AppData/uploads/saves/
    ```
 
 ### Between Docker Hosts
 
 1. **Create backup** on source:
    ```bash
-   tar -czf madtorio-migration.tar.gz -C /mnt/user/appdata/madtorio/data .
+   tar -czf madtorio-migration.tar.gz -C /mnt/user/appAppData/madtori./AppData .
    ```
 
 2. **Transfer to destination**:
@@ -451,9 +451,9 @@ Database migrations run automatically on startup. No manual intervention needed.
 3. **Extract on destination**:
    ```bash
    # On new host
-   mkdir -p /mnt/user/appdata/madtorio/data
-   tar -xzf /tmp/madtorio-migration.tar.gz -C /mnt/user/appdata/madtorio/data/
-   chown -R 1654:1654 /mnt/user/appdata/madtorio/data
+   mkdir -p /mnt/user/appAppData/madtori./AppData
+   tar -xzf /tmp/madtorio-migration.tar.gz -C /mnt/user/appAppData/madtori./AppData/
+   chown -R 1654:1654 /mnt/user/appAppData/madtori./AppData
    ```
 
 4. **Start container** on new host
@@ -471,7 +471,7 @@ For better performance with many concurrent users, consider:
 
 2. **Increase cache size** (in connection string):
    ```
-   DataSource=/app/data/madtorio.db;Cache=Shared;Page Size=4096;Cache Size=10000
+   DataSource=/app/AppData/madtorio.db;Cache=Shared;Page Size=4096;Cache Size=10000
    ```
 
 ### File Storage

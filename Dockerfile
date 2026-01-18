@@ -18,8 +18,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 ARG VERSION=dev
 WORKDIR /app
 
-# Create data directories for volumes
-RUN mkdir -p /app/data/uploads/saves /app/data/uploads/temp /app/data/keys
+# Create AppData directories for volumes (runtime data storage)
+RUN mkdir -p /app/AppData/uploads/saves /app/AppData/uploads/temp /app/AppData/keys
 
 # Copy published application
 COPY --from=build /app/publish .
