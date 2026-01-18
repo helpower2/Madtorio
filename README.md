@@ -93,7 +93,7 @@ Images are pushed to Docker Hub: `helpower2/madtorio`
 
 **On Unraid** (auto-updates daily at 01:00):
 ```bash
-cd /mnt/user/appdata/madtorio
+cd /mnt/user/appAppData/madtorio
 docker compose pull
 docker compose up -d
 ```
@@ -145,7 +145,7 @@ Madtorio/
 
 ### Database
 
-- SQLite database (`madtorio.db`)
+- SQLite database (`AppData/madtorio.db`)
 - Auto-migrates on startup
 - Seeds default admin user and rules
 

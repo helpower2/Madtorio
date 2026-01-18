@@ -14,7 +14,7 @@
 
   <Config Name="WebUI Port" Target="8567" Default="8567" Mode="tcp" Description="Web interface port" Type="Port" Display="always" Required="true" Mask="false">8567</Config>
 
-  <Config Name="Data Directory" Target="/app/data" Default="/mnt/user/appdata/madtorio" Mode="rw" Description="Persistent data storage (database, uploads, keys)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/madtorio</Config>
+  <Config Name="Data Directory" Target="/app/AppData" Default="/mnt/user/appdata/madtorio" Mode="rw" Description="Persistent data storage (database, uploads, keys)" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/madtorio</Config>
 
   <Config Name="Admin Email" Target="AdminEmail" Default="admin@madtorio.com" Mode="" Description="Default admin email address" Type="Variable" Display="always" Required="false" Mask="false">admin@madtorio.com</Config>
 

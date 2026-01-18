@@ -104,7 +104,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         var uploadId = await _service.InitiateUploadAsync(fileName, fileSize, "user");
 
         // Assert
-        var tempPath = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId);
+        var tempPath = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId);
         Directory.Exists(tempPath).Should().BeTrue();
     }
 
@@ -157,7 +157,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         success.Should().BeTrue();
         error.Should().BeNull();
 
-        var chunkPath = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId, "chunk_0000.tmp");
+        var chunkPath = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId, "chunk_0000.tmp");
         File.Exists(chunkPath).Should().BeTrue();
         var savedData = await File.ReadAllBytesAsync(chunkPath);
         savedData.Should().Equal(chunkData);
@@ -217,9 +217,9 @@ public class ChunkedFileUploadServiceTests : IDisposable
         session!.UploadedChunks.Should().HaveCount(3);
         session.UploadedChunks.Should().Contain(new[] { 0, 1, 2 });
 
-        var chunk1Path = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId, "chunk_0000.tmp");
-        var chunk2Path = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId, "chunk_0001.tmp");
-        var chunk3Path = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId, "chunk_0002.tmp");
+        var chunk1Path = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId, "chunk_0000.tmp");
+        var chunk2Path = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId, "chunk_0001.tmp");
+        var chunk3Path = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId, "chunk_0002.tmp");
 
         File.Exists(chunk1Path).Should().BeTrue();
         File.Exists(chunk2Path).Should().BeTrue();
@@ -260,7 +260,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         filePath.Should().NotBeNullOrEmpty();
 
         // Verify final file exists and has correct content
-        var finalFilePath = Path.Combine(_testRoot, "data", "uploads", "saves", filePath!);
+        var finalFilePath = Path.Combine(_testRoot, "AppData", "uploads", "saves", filePath!);
         File.Exists(finalFilePath).Should().BeTrue();
 
         var finalContent = await File.ReadAllBytesAsync(finalFilePath);
@@ -276,7 +276,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         var chunk = new byte[1000];
         await _service.UploadChunkAsync(uploadId, 0, chunk);
 
-        var tempPath = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId);
+        var tempPath = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId);
         tempPath.Should().NotBeNull();
         Directory.Exists(tempPath).Should().BeTrue();
 
@@ -397,7 +397,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
     {
         // Arrange
         var uploadId = await _service.InitiateUploadAsync("test.zip", 1024, "user");
-        var tempPath = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId);
+        var tempPath = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId);
         Directory.Exists(tempPath).Should().BeTrue();
 
         // Act
@@ -443,7 +443,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         await _service.UploadChunkAsync(uploadId, 0, chunk);
         await _service.UploadChunkAsync(uploadId, 1, chunk);
 
-        var tempPath = Path.Combine(_testRoot, "data", "uploads", "temp", uploadId);
+        var tempPath = Path.Combine(_testRoot, "AppData", "uploads", "temp", uploadId);
         Directory.GetFiles(tempPath).Should().HaveCount(2);
 
         // Act
@@ -532,7 +532,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         finalizeError.Should().BeNull();
         filePath.Should().NotBeNullOrEmpty();
 
-        var finalFilePath = Path.Combine(_testRoot, "data", "uploads", "saves", filePath!);
+        var finalFilePath = Path.Combine(_testRoot, "AppData", "uploads", "saves", filePath!);
         var finalContent = await File.ReadAllBytesAsync(finalFilePath);
         finalContent.Should().Equal(fileContent);
     }
@@ -571,7 +571,7 @@ public class ChunkedFileUploadServiceTests : IDisposable
         success.Should().BeTrue();
         error.Should().BeNull();
 
-        var finalFilePath = Path.Combine(_testRoot, "data", "uploads", "saves", filePath!);
+        var finalFilePath = Path.Combine(_testRoot, "AppData", "uploads", "saves", filePath!);
         var finalContent = await File.ReadAllBytesAsync(finalFilePath);
 
         finalContent.Should().HaveCount((int)totalSize);
@@ -604,8 +604,8 @@ public class ChunkedFileUploadServiceTests : IDisposable
         success2.Should().BeTrue();
         filePath1.Should().NotBe(filePath2);
 
-        var file1Path = Path.Combine(_testRoot, "data", "uploads", "saves", filePath1!);
-        var file2Path = Path.Combine(_testRoot, "data", "uploads", "saves", filePath2!);
+        var file1Path = Path.Combine(_testRoot, "AppData", "uploads", "saves", filePath1!);
+        var file2Path = Path.Combine(_testRoot, "AppData", "uploads", "saves", filePath2!);
 
         var file1Content = await File.ReadAllBytesAsync(file1Path);
         var file2Content = await File.ReadAllBytesAsync(file2Path);

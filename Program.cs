@@ -15,8 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 var adminEmail = builder.Configuration["AdminEmail"] ?? "admin@madtorio.com";
 var adminPassword = builder.Configuration["AdminPassword"] ?? "Madtorio2026!";
 
-// Configure Data Protection keys to persist in the data directory (for Docker)
-var keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "data", "keys");
+// Configure Data Protection keys to persist in the AppData directory (for Docker)
+var keysDirectory = Path.Combine(builder.Environment.ContentRootPath, "AppData", "keys");
 Directory.CreateDirectory(keysDirectory);
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))

@@ -310,8 +310,8 @@ The Save File Management system allows users to upload, store, and download Fact
 - **Chunked Uploads**: Large files split into chunks for reliable uploads
 - **File Metadata**: Track filename, size, upload date, and uploader
 - **Authorization**: Only authenticated users can upload
-- **File Storage**: Files stored in `data/uploads/saves/`
-- **Temporary Storage**: Chunks stored in `data/uploads/temp/` during upload
+- **File Storage**: Files stored in `AppData/uploads/saves/`
+- **Temporary Storage**: Chunks stored in `AppData/uploads/temp/` during upload
 - **Download Tracking**: Statistics recorded for each download
 
 ### Components
@@ -349,9 +349,9 @@ Handles chunked file uploads for large files.
 
 1. Client splits file into chunks (JavaScript)
 2. Each chunk uploaded via `ChunkedFileUploadService`
-3. Chunks stored in `data/uploads/temp/`
+3. Chunks stored in `AppData/uploads/temp/`
 4. Final chunk triggers assembly
-5. Complete file moved to `data/uploads/saves/`
+5. Complete file moved to `AppData/uploads/saves/`
 6. Metadata created via `SaveFileService`
 7. Statistics event recorded
 8. Temporary chunks cleaned up

@@ -25,14 +25,14 @@ Madtorio/
 │   ├── Pages/         # Routes (public and /Admin pages)
 │   └── Account/       # Authentication UI
 ├── Data/              # Database layer (Models, Migrations, Seed)
-├── data/              # Runtime data (uploads, database, keys) - git-ignored
+├── AppData/           # Runtime data (uploads, database, keys) - git-ignored
 ├── Services/          # Business logic (interface-based DI)
 ├── Middleware/        # Custom middleware
 ├── Controllers/       # API controllers
 └── Madtorio.Tests/    # Test project
 ```
 
-**Important**: `Data/` (uppercase) = source code, `data/` (lowercase) = runtime data
+**Important**: `Data/` (uppercase) = source code, `AppData/` (lowercase) = runtime data
 
 ### Common Commands
 
@@ -152,8 +152,8 @@ See [docs/FEATURES.md](docs/FEATURES.md) for complete Rules System documentation
 Upload, store, and download Factorio save files (up to 500MB).
 
 - Chunked uploads for large files
-- Temporary storage in `data/uploads/temp/`
-- Final storage in `data/uploads/saves/`
+- Temporary storage in `AppData/uploads/temp/`
+- Final storage in `AppData/uploads/saves/`
 - Metadata tracked in database
 
 See [docs/FEATURES.md](docs/FEATURES.md) for file management details.
@@ -171,20 +171,20 @@ See [docs/FEATURES.md](docs/FEATURES.md) for statistics documentation.
 ## Data Storage
 
 ### Development
-- Database: `madtorio.db` (project root)
-- Uploads: `data/uploads/saves/`
-- Keys: `data/keys/`
+- Database: `AppData/madtorio.db`
+- Uploads: `AppData/uploads/saves/`
+- Keys: `AppData/keys/`
 
 ### Production/Docker
-- All data consolidated in: `/app/data/`
-- Database: `/app/data/madtorio.db`
-- Uploads: `/app/data/uploads/saves/`
-- Keys: `/app/data/keys/`
+- All data consolidated in: `/app/AppData/`
+- Database: `/app/AppData/madtorio.db`
+- Uploads: `/app/AppData/uploads/saves/`
+- Keys: `/app/AppData/keys/`
 
 ### Important Notes
-- **Always mount `/app/data` volume in Docker** to persist data
+- **Always mount `/app/AppData` volume in Docker** to persist data
 - Without volume mount, all data is ephemeral and lost on restart
-- `Data/` (uppercase) = source code, `data/` (lowercase) = runtime storage
+- `Data/` (uppercase) = source code, `AppData/` = runtime storage
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment and backup strategies.
 

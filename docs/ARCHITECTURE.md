@@ -35,7 +35,7 @@ Madtorio/
 └── Madtorio.Tests/         # Test project
 ```
 
-**Important Note**: The `Data/` directory (uppercase) in the repository contains **source code** (Models, Migrations, Seed). The `data/` directory (lowercase) is created at runtime for **data storage**. On Windows (case-insensitive filesystem), both paths resolve to the same directory name but serve different purposes.
+**Important Note**: The `Data/` directory (uppercase) in the repository contains **source code** (Models, Migrations, Seed). The `AppData/` directory (lowercase) is created at runtime for **data storage**. On Windows (case-insensitive filesystem), both paths resolve to the same directory name but serve different purposes.
 
 ## Service Layer Pattern
 
@@ -50,12 +50,12 @@ All business logic is implemented using interface-based dependency injection, fo
 
 #### IFileStorageService / FileStorageService
 - Physical file storage operations on disk
-- Manages actual .zip file storage in `data/uploads/saves/`
+- Manages actual .zip file storage in `AppData/uploads/saves/`
 - Handles file deletion and cleanup
 
 #### IChunkedFileUploadService / ChunkedFileUploadService
 - Handles large file uploads via chunking
-- Manages temporary chunks in `data/uploads/temp/`
+- Manages temporary chunks in `AppData/uploads/temp/`
 - Assembles chunks into final save files
 - Supports files up to 500MB
 
@@ -138,7 +138,7 @@ See [FEATURES.md](FEATURES.md) for details on the Rules System schema.
 - ASP.NET Core Identity with role support
 - "Admin" role for administrative functions
 - Cookie-based authentication
-- Data Protection keys stored in `data/keys/`
+- Data Protection keys stored in `AppData/keys/`
 
 ### Authorization Policies
 - **"Admin" policy**: Requires authenticated user with "Admin" role
@@ -190,9 +190,9 @@ For implementation details, see the [Middleware/](../Middleware/) directory.
 1. User selects file in UI (Components/Pages/SaveFiles)
 2. Client chunks large files (JavaScript)
 3. ChunkedFileUploadService receives chunks
-4. Chunks assembled in `data/uploads/temp/`
+4. Chunks assembled in `AppData/uploads/temp/`
 5. SaveFileService creates metadata record
-6. FileStorageService moves final file to `data/uploads/saves/`
+6. FileStorageService moves final file to `AppData/uploads/saves/`
 7. StatisticsService records upload event
 8. Temporary chunks cleaned up
 

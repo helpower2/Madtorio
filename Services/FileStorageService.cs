@@ -31,8 +31,8 @@ public class FileStorageService : IFileStorageService
             }
 
             // Create upload directory if it doesn't exist
-            // Use 'data' directory for Docker compatibility (mapped to persistent volume)
-            var uploadPath = Path.Combine(_environment.ContentRootPath, "data", "uploads", subdirectory);
+            // Use 'AppData' directory for Docker compatibility (mapped to persistent volume)
+            var uploadPath = Path.Combine(_environment.ContentRootPath, "AppData", "uploads", subdirectory);
             Directory.CreateDirectory(uploadPath);
 
             // Generate unique filename
@@ -62,8 +62,8 @@ public class FileStorageService : IFileStorageService
     {
         try
         {
-            // Use 'data' directory for Docker compatibility (mapped to persistent volume)
-            var fullPath = Path.Combine(_environment.ContentRootPath, "data", "uploads", "saves", fileName);
+            // Use 'AppData' directory for Docker compatibility (mapped to persistent volume)
+            var fullPath = Path.Combine(_environment.ContentRootPath, "AppData", "uploads", "saves", fileName);
 
             if (File.Exists(fullPath))
             {

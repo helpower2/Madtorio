@@ -134,7 +134,7 @@ dotnet ef migrations script
 
 ```bash
 # Delete database file
-rm madtorio.db madtorio.db-shm madtorio.db-wal
+rm AppData/madtorio.db AppData/madtorio.db-shm AppData/madtorio.db-wal
 
 # Run application (auto-migrates and seeds)
 dotnet run
@@ -413,7 +413,7 @@ If you see "database is locked" errors:
 ```bash
 # Stop all running instances
 # Delete WAL files
-rm madtorio.db-shm madtorio.db-wal
+rm AppData/madtorio.db-shm AppData/madtorio.db-wal
 # Restart application
 ```
 
@@ -432,7 +432,7 @@ dotnet run --urls "http://localhost:5001"
 dotnet ef migrations remove
 
 # Reset database
-rm madtorio.db*
+rm AppData/madtorio.db*
 dotnet ef database update
 ```
 

@@ -43,8 +43,8 @@ public class DownloadsController : ControllerBase
                 return NotFound("Save file not found");
             }
 
-            // Get physical file path - use 'data' directory for Docker compatibility
-            var filePath = Path.Combine(_environment.ContentRootPath, "data", "uploads", "saves", fileName);
+            // Get physical file path - use 'AppData' directory for Docker compatibility
+            var filePath = Path.Combine(_environment.ContentRootPath, "AppData", "uploads", "saves", fileName);
 
             if (!System.IO.File.Exists(filePath))
             {

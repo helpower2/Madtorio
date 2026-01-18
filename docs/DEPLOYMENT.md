@@ -21,51 +21,51 @@ Madtorio uses different data storage locations depending on the environment.
 ### Development Environment
 
 **Database Location**:
-- File: `Data/madtorio.db` (or `data/madtorio.db` - same location on Windows)
+- File: `Data/madtorio.db` (or `AppData/madtorio.db` - same location on Windows)
 - Includes WAL files: `madtorio.db-shm`, `madtorio.db-wal`
 - Git-ignored via `.gitignore`
 
 **Uploaded Save Files**:
-- Directory: `data/uploads/saves/`
+- Directory: `AppData/uploads/saves/`
 - Contains all uploaded Factorio save files
 
 **Temporary Upload Chunks**:
-- Directory: `data/uploads/temp/`
+- Directory: `AppData/uploads/temp/`
 - Temporary storage during chunked uploads
 - Automatically cleaned up after assembly
 
 **Data Protection Keys**:
-- Directory: `data/keys/`
+- Directory: `AppData/keys/`
 - ASP.NET Core Data Protection keys for authentication
 - Critical for cookie encryption
 
-**Note**: All runtime data directories (`data/`) are git-ignored.
+**Note**: All runtime data directories (`AppData/`) are git-ignored.
 
 ### Production/Docker Environment
 
-All data is consolidated in `/app/data/` within the container:
+All data is consolidated in `/app/AppData/` within the container:
 
 **Database**:
-- `/app/data/madtorio.db`
-- `/app/data/madtorio.db-shm`
-- `/app/data/madtorio.db-wal`
+- `/app/AppData/madtorio.db`
+- `/app/AppData/madtorio.db-shm`
+- `/app/AppData/madtorio.db-wal`
 
 **Uploaded Save Files**:
-- `/app/data/uploads/saves/`
+- `/app/AppData/uploads/saves/`
 
 **Temporary Upload Chunks**:
-- `/app/data/uploads/temp/`
+- `/app/AppData/uploads/temp/`
 
 **Data Protection Keys**:
-- `/app/data/keys/`
+- `/app/AppData/keys/`
 
 ### Directory Name Note
 
-**Important**: The `Data/` directory (uppercase) in the repository contains **source code** (Models, Migrations, Seed classes). The `data/` directory (lowercase) is created at runtime for **data storage**.
+**Important**: The `Data/` directory (uppercase) in the repository contains **source code** (Models, Migrations, Seed classes). The `AppData/` directory (lowercase) is created at runtime for **data storage**.
 
 On Windows (case-insensitive filesystem), both paths resolve to the same directory name but serve completely different purposes:
 - `Data/` → Source code
-- `data/` → Runtime data
+- `AppData/` → Runtime data
 
 On Linux (case-sensitive filesystem), these are distinct directories.
 
@@ -75,7 +75,7 @@ On Linux (case-sensitive filesystem), these are distinct directories.
 
 ### Docker Volume Mapping
 
-To persist data across container restarts, mount the `/app/data` directory:
+To persist data across container restarts, mount the `/app/AppData` directory:
 
 #### docker-compose.yml Example
 
@@ -87,7 +87,7 @@ services:
     ports:
       - "8083:8080"
     volumes:
-      - ./data:/app/data
+      - ./data:/app/AppData
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - AdminEmail=admin@madtorio.com
@@ -101,7 +101,7 @@ services:
 docker run -d \
   --name madtorio \
   -p 8083:8080 \
-  -v $(pwd)/data:/app/data \
+  -v $(pwd)/data:/app/AppData \
   -e ASPNETCORE_ENVIRONMENT=Production \
   -e AdminEmail=admin@madtorio.com \
   -e AdminPassword=YourSecurePassword123! \
@@ -112,11 +112,11 @@ docker run -d \
 ### Volume Path Recommendations
 
 **Development/Docker Compose**:
-- Relative path: `./data:/app/data`
-- Full path: `/path/to/madtorio/data:/app/data`
+- Relative path: `./data:/app/AppData`
+- Full path: `/path/to/madtorio/data:/app/AppData`
 
 **Production/Unraid**:
-- Recommended: `/mnt/user/appdata/madtorio:/app/data`
+- Recommended: `/mnt/user/appdata/madtorio:/app/AppData`
 
 ### Data Persistence Warning
 
@@ -125,7 +125,7 @@ docker run -d \
 - Container is updated
 - Host is rebooted (unless restart policy set)
 
-Always mount `/app/data` to a persistent location on the host.
+Always mount `/app/AppData` to a persistent location on the host.
 
 ---
 
@@ -163,7 +163,7 @@ Always mount `/app/data` to a persistent location on the host.
 
 ### Volume Mapping
 
-**Container Path**: `/app/data`
+**Container Path**: `/app/AppData`
 **Host Path**: `/mnt/user/appdata/madtorio` (recommended)
 
 This mapping persists:
@@ -217,7 +217,7 @@ tar -xzf /mnt/user/backups/madtorio-backup-20260117.tar.gz \
 **Solution**:
 1. Check volume mapping in container settings
 2. Verify `/mnt/user/appdata/madtorio/` exists
-3. Run: `docker exec madtorio ls -la /app/data`
+3. Run: `docker exec madtorio ls -la /app/AppData`
 4. Ensure proper permissions: `chown -R 1654:1654 /mnt/user/appdata/madtorio`
 
 #### Cannot Access Web UI
@@ -276,7 +276,7 @@ Set via environment variables or `.env` file:
 ASPNETCORE_ENVIRONMENT=Production
 AdminEmail=admin@madtorio.com
 AdminPassword=YourSecurePassword123!
-ConnectionStrings__DefaultConnection=DataSource=/app/data/madtorio.db;Cache=Shared
+ConnectionStrings__DefaultConnection=DataSource=/app/AppData/madtorio.db;Cache=Shared
 ```
 
 ### appsettings.Production.json
@@ -292,7 +292,7 @@ Production-specific configuration:
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "DataSource=/app/data/madtorio.db;Cache=Shared"
+    "DefaultConnection": "DataSource=/app/AppData/madtorio.db;Cache=Shared"
   }
 }
 ```
@@ -375,11 +375,11 @@ chmod -R 755 /mnt/user/appdata/madtorio
 
 Essential data to backup:
 1. **Database**: `madtorio.db` (includes WAL files)
-2. **Save Files**: `data/uploads/saves/`
-3. **Data Protection Keys**: `data/keys/`
+2. **Save Files**: `AppData/uploads/saves/`
+3. **Data Protection Keys**: `AppData/keys/`
 
 Optional (can be regenerated):
-- Temporary chunks: `data/uploads/temp/`
+- Temporary chunks: `AppData/uploads/temp/`
 
 ### Backup Strategies
 
@@ -405,7 +405,7 @@ Backup just the database:
 docker compose down
 
 # Backup database
-cp /path/to/data/madtorio.db /path/to/backup/
+cp /path/to/AppData/madtorio.db /path/to/backup/
 
 # Restart container
 docker compose up -d
@@ -473,13 +473,13 @@ docker compose up -d
 2. **Copy to production**:
    ```bash
    docker compose down
-   cp madtorio-export.db /path/to/data/madtorio.db
+   cp madtorio-export.db /path/to/AppData/madtorio.db
    docker compose up -d
    ```
 
 3. **Migrate save files**:
    ```bash
-   cp -r local-data/uploads/saves/* /path/to/data/uploads/saves/
+   cp -r local-AppData/uploads/saves/* /path/to/AppData/uploads/saves/
    ```
 
 ### Storage Requirements
@@ -503,7 +503,7 @@ For better performance with concurrent users:
 
 2. **Increase cache size** (in connection string):
    ```
-   DataSource=/app/data/madtorio.db;Cache=Shared;Page Size=4096;Cache Size=10000
+   DataSource=/app/AppData/madtorio.db;Cache=Shared;Page Size=4096;Cache Size=10000
    ```
 
 ### File Storage Performance
@@ -577,7 +577,7 @@ du -sh /mnt/user/appdata/madtorio/uploads/temp/
 Remove old temporary chunks:
 
 ```bash
-find /path/to/data/uploads/temp/ -type f -mtime +7 -delete
+find /path/to/AppData/uploads/temp/ -type f -mtime +7 -delete
 ```
 
 #### Vacuum Database
@@ -585,7 +585,7 @@ find /path/to/data/uploads/temp/ -type f -mtime +7 -delete
 Optimize database (do this during low traffic):
 
 ```bash
-docker exec -it madtorio sqlite3 /app/data/madtorio.db "VACUUM;"
+docker exec -it madtorio sqlite3 /app/AppData/madtorio.db "VACUUM;"
 ```
 
 ---
