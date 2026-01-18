@@ -245,11 +245,25 @@ See [README.Docker.md](README.Docker.md) for comprehensive Unraid installation i
 
 [Add your license here]
 
+## Documentation
+
+Comprehensive documentation is available in the [docs/](docs/) directory:
+
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture, tech stack, services, database design
+- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development setup, build commands, testing, git workflow
+- **[docs/FEATURES.md](docs/FEATURES.md)** - Feature documentation (Rules System, Save Files, Statistics)
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Deployment guides, data storage, Docker, Unraid setup
+
+Additional resources:
+- [CLAUDE.md](CLAUDE.md) - Quick reference for Claude Code
+- [README.Docker.md](README.Docker.md) - Docker deployment guide
+- [CICD-SETUP.md](CICD-SETUP.md) - CI/CD pipeline setup
+
 ## Support
 
 For issues and questions:
 - GitHub Issues: https://github.com/helpower2/Madtorio/issues
-- Documentation: See [CLAUDE.md](CLAUDE.md) for developer guidance
+- Documentation: See [docs/](docs/) directory for detailed guides
 
 ## Version History
 
