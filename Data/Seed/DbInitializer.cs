@@ -47,7 +47,9 @@ public static class DbInitializer
             {
                 UserName = adminEmail,
                 Email = adminEmail,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                RequirePasswordChange = false,
+                PasswordLastChanged = DateTime.UtcNow
             };
 
             var result = await userManager.CreateAsync(adminUser, adminPassword);
@@ -65,13 +67,27 @@ public static class DbInitializer
                     logger.LogWarning("Using DEFAULT credentials - PLEASE CHANGE IMMEDIATELY!");
                 }
 
-                logger.LogWarning("CHANGE THE PASSWORD ON FIRST LOGIN!");
                 logger.LogWarning("========================================");
             }
             else
             {
                 logger.LogError("Failed to create admin user: {Errors}",
                     string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+        else
+        {
+            // Ensure existing admin user has the new fields initialized
+            bool needsUpdate = false;
+            if (adminUser.PasswordLastChanged == null)
+            {
+                adminUser.PasswordLastChanged = DateTime.UtcNow;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate)
+            {
+                await userManager.UpdateAsync(adminUser);
             }
         }
     }

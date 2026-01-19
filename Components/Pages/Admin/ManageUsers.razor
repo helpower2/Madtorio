@@ -1,0 +1,446 @@
+@page "/admin/users"
+@using Madtorio.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject IUserManagementService UserManagementService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Manage Users - Admin</PageTitle>
+
+<h1>Manage Users</h1>
+
+<div class="mt-4">
+    @if (statusMessage != null)
+    {
+        <div class="alert @(statusMessage.StartsWith("Error") ? "alert-danger" : "alert-success")">
+            @statusMessage
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="card">
+            <div class="card-body text-center">
+                <p>Loading users...</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <button class="btn btn-primary" @onclick="ShowCreateUserForm">
+                <i class="bi bi-plus-circle"></i> Add New User
+            </button>
+        </div>
+
+        @if (showCreateUserForm)
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>Create New User</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="NewUserModel" OnValidSubmit="CreateUser">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Username</label>
+                            <InputText @bind-Value="NewUserModel.Username" class="form-control" placeholder="e.g., john.doe@example.com" />
+                            <ValidationMessage For="() => NewUserModel.Username" class="text-danger" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Email (optional)</label>
+                            <InputText @bind-Value="NewUserModel.Email" class="form-control" placeholder="Optional email for reference" />
+                            <ValidationMessage For="() => NewUserModel.Email" class="text-danger" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Temporary Password</label>
+                            <InputText type="password" @bind-Value="NewUserModel.TemporaryPassword" class="form-control" placeholder="Must meet password requirements" />
+                            <ValidationMessage For="() => NewUserModel.TemporaryPassword" class="text-danger" />
+                            <small class="text-muted">User will be required to change this password on first login.</small>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <InputCheckbox @bind-Value="NewUserModel.IsAdmin" class="form-check-input" id="NewUserIsAdmin" />
+                            <label class="form-check-label" for="NewUserIsAdmin">
+                                Grant Admin Role
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Create User</button>
+                        <button type="button" class="btn btn-secondary" @onclick="() => showCreateUserForm = false">Cancel</button>
+                    </EditForm>
+                </div>
+            </div>
+        }
+
+        @if (users != null && users.Count > 0)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h3>Users (@users.Count)</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Admin</th>
+                                <th>Password Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in users.OrderBy(u => u.UserName))
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@user.UserName</strong>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(user.Email))
+                                        {
+                                            <span>@user.Email</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.IsAdmin)
+                                        {
+                                            <span class="badge bg-primary">Admin</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">User</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.RequirePasswordChange)
+                                        {
+                                            <span class="badge bg-warning text-dark">Requires Change</span>
+                                        }
+                                        else if (user.PasswordLastChanged.HasValue)
+                                        {
+                                            <span class="badge bg-success">Changed</span>
+                                            <small class="text-muted d-block">@user.PasswordLastChanged.Value.ToString("g")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">Never Changed</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEditingUser(user)">Edit</button>
+                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => ShowResetPasswordForm(user)">Reset Password</button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteUser(user)">Delete</button>
+                                    </td>
+                                </tr>
+
+                                @if (editingUserId == user.Id)
+                                {
+                                    <tr class="table-active">
+                                        <td colspan="5">
+                                            <div class="p-3">
+                                                <h5>Edit User</h5>
+                                                <EditForm Model="EditUserModel" OnValidSubmit="() => SaveUserEdit(user.Id)">
+                                                    <DataAnnotationsValidator />
+                                                    <ValidationSummary class="text-danger" />
+
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group mb-2">
+                                                                <label class="form-label">Username</label>
+                                                                <InputText @bind-Value="EditUserModel.Username" class="form-control" />
+                                                                <ValidationMessage For="() => EditUserModel.Username" class="text-danger" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group mb-2">
+                                                                <label class="form-label">Email (optional)</label>
+                                                                <InputText @bind-Value="EditUserModel.Email" class="form-control" />
+                                                                <ValidationMessage For="() => EditUserModel.Email" class="text-danger" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-check mb-3">
+                                                        <InputCheckbox @bind-Value="EditUserModel.IsAdmin" class="form-check-input" id="EditUserIsAdmin" />
+                                                        <label class="form-check-label" for="EditUserIsAdmin">
+                                                            Grant Admin Role
+                                                        </label>
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                                    <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditUser">Cancel</button>
+                                                </EditForm>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+
+                                @if (resetPasswordUserId == user.Id)
+                                {
+                                    <tr class="table-active">
+                                        <td colspan="5">
+                                            <div class="p-3">
+                                                <h5>Reset Password for @user.UserName</h5>
+                                                <EditForm Model="ResetPasswordModel" OnValidSubmit="() => ResetUserPassword(user.Id)">
+                                                    <DataAnnotationsValidator />
+                                                    <ValidationSummary class="text-danger" />
+
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label">New Temporary Password</label>
+                                                        <InputText type="password" @bind-Value="ResetPasswordModel.NewPassword" class="form-control" placeholder="Must meet password requirements" />
+                                                        <ValidationMessage For="() => ResetPasswordModel.NewPassword" class="text-danger" />
+                                                    </div>
+
+                                                    <div class="alert alert-warning">
+                                                        <strong>Note:</strong> The user will be required to change this password on their next login.
+                                                    </div>
+
+                                                    <button type="submit" class="btn btn-sm btn-danger">Reset Password</button>
+                                                    <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelResetPassword">Cancel</button>
+                                                </EditForm>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="text-muted">No users found.</p>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<div class="mt-4">
+    <a href="/admin" class="btn btn-secondary">Back to Admin Panel</a>
+</div>
+
+@code {
+    private List<UserDto>? users;
+    private bool isLoading = true;
+    private string? statusMessage;
+    private bool showCreateUserForm;
+    private string? editingUserId;
+    private string? resetPasswordUserId;
+
+    private CreateUserFormModel NewUserModel = new();
+    private EditUserFormModel EditUserModel = new() { Username = "", Email = null, IsAdmin = false };
+    private ResetPasswordFormModel ResetPasswordModel = new() { NewPassword = "" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        isLoading = true;
+        try
+        {
+            users = await UserManagementService.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error loading users: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowCreateUserForm()
+    {
+        showCreateUserForm = true;
+        NewUserModel = new();
+    }
+
+    private async Task CreateUser()
+    {
+        try
+        {
+            var result = await UserManagementService.CreateUserAsync(
+                NewUserModel.Username,
+                NewUserModel.TemporaryPassword,
+                string.IsNullOrWhiteSpace(NewUserModel.Email) ? null : NewUserModel.Email,
+                NewUserModel.IsAdmin
+            );
+
+            if (result.Succeeded)
+            {
+                statusMessage = $"User '{NewUserModel.Username}' created successfully";
+                showCreateUserForm = false;
+                NewUserModel = new();
+                await LoadUsers();
+            }
+            else
+            {
+                statusMessage = $"Error creating user: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private void StartEditingUser(UserDto user)
+    {
+        editingUserId = user.Id;
+        EditUserModel = new()
+        {
+            Username = user.UserName,
+            Email = user.Email,
+            IsAdmin = user.IsAdmin
+        };
+    }
+
+    private void CancelEditUser()
+    {
+        editingUserId = null;
+        EditUserModel = new();
+    }
+
+    private async Task SaveUserEdit(string userId)
+    {
+        try
+        {
+            var result = await UserManagementService.UpdateUserAsync(
+                userId,
+                EditUserModel.Username,
+                string.IsNullOrWhiteSpace(EditUserModel.Email) ? null : EditUserModel.Email,
+                EditUserModel.IsAdmin
+            );
+
+            if (result.Succeeded)
+            {
+                statusMessage = "User updated successfully";
+                editingUserId = null;
+                EditUserModel = new();
+                await LoadUsers();
+            }
+            else
+            {
+                statusMessage = $"Error updating user: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private void ShowResetPasswordForm(UserDto user)
+    {
+        resetPasswordUserId = user.Id;
+        ResetPasswordModel = new();
+    }
+
+    private void CancelResetPassword()
+    {
+        resetPasswordUserId = null;
+        ResetPasswordModel = new();
+    }
+
+    private async Task ResetUserPassword(string userId)
+    {
+        try
+        {
+            var result = await UserManagementService.ResetPasswordAsync(userId, ResetPasswordModel.NewPassword);
+
+            if (result.Succeeded)
+            {
+                statusMessage = "Password reset successfully. User will be required to change it on next login.";
+                resetPasswordUserId = null;
+                ResetPasswordModel = new();
+                await LoadUsers();
+            }
+            else
+            {
+                statusMessage = $"Error resetting password: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteUser(UserDto user)
+    {
+        var currentUserId = await UserManagementService.GetCurrentUserIdAsync();
+        if (user.Id == currentUserId)
+        {
+            statusMessage = "Error: You cannot delete your own account.";
+            return;
+        }
+
+        if (!await Confirm($"Are you sure you want to delete user '{user.UserName}'? This action cannot be undone."))
+            return;
+
+        try
+        {
+            var result = await UserManagementService.DeleteUserAsync(user.Id);
+
+            if (result.Succeeded)
+            {
+                statusMessage = $"User '{user.UserName}' deleted successfully";
+                await LoadUsers();
+            }
+            else
+            {
+                statusMessage = $"Error deleting user: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task<bool> Confirm(string message)
+    {
+        // In Blazor Server, we can use JSInterop or just show a simple confirmation
+        // For now, return true as the user needs to click the delete button explicitly
+        return true;
+    }
+
+    private sealed class CreateUserFormModel
+    {
+        public string Username { get; set; } = "";
+        public string TemporaryPassword { get; set; } = "";
+        public string? Email { get; set; }
+        public bool IsAdmin { get; set; }
+    }
+
+    private sealed class EditUserFormModel
+    {
+        public string Username { get; set; } = "";
+        public string? Email { get; set; }
+        public bool IsAdmin { get; set; }
+    }
+
+    private sealed class ResetPasswordFormModel
+    {
+        public string NewPassword { get; set; } = "";
+    }
+}

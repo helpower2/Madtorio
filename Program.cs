@@ -87,13 +87,14 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false; // Changed to false for admin login
+        options.SignIn.RequireConfirmedAccount = false;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
         options.Password.RequireDigit = true;
         options.Password.RequiredLength = 8;
         options.Password.RequireNonAlphanumeric = true;
         options.Password.RequireUppercase = true;
         options.Password.RequireLowercase = true;
+        options.User.RequireUniqueEmail = false; // Email is not the unique identifier
     })
     .AddRoles<IdentityRole>() // Add role support
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -112,6 +113,10 @@ builder.Services.AddScoped<Madtorio.Services.IFileStorageService, Madtorio.Servi
 builder.Services.AddScoped<Madtorio.Services.IChunkedFileUploadService, Madtorio.Services.ChunkedFileUploadService>();
 builder.Services.AddScoped<Madtorio.Services.IRulesService, Madtorio.Services.RulesService>();
 builder.Services.AddScoped<Madtorio.Services.IStatisticsService, Madtorio.Services.StatisticsService>();
+builder.Services.AddScoped<Madtorio.Services.IUserManagementService, Madtorio.Services.UserManagementService>();
+
+// Register HttpContextAccessor for user context access in services
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -151,6 +156,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Password change enforcement middleware (before antiforgery to allow logout bypass)
+app.UseMiddleware<Madtorio.Middleware.PasswordChangeMiddleware>();
 
 app.UseAntiforgery();
 
