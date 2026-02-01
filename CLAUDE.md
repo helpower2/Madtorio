@@ -57,6 +57,7 @@ dotnet test
 - `IChunkedFileUploadService` - Chunked file upload handling
 - `IRulesService` - Rules and server configuration management
 - `IStatisticsService` - Usage tracking and metrics
+- `IModRequestService` - Community mod request submissions and voting
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed service documentation.
 
@@ -87,6 +88,15 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed service documentat
 - Implement tests for all new features and functionality
 - Tests must pass before committing: `dotnet test`
 - When creating new components, add them to `/admin/component-test` page
+
+### Security Considerations
+
+- Validate all user input on server-side (never trust client-side validation alone)
+- Use `[Authorize]` attributes on all authenticated endpoints
+- Admin pages require `[Authorize(Roles = "Admin")]` or `[Authorize(Policy = "Admin")]`
+- Sanitize user-generated content to prevent XSS
+- Use parameterized queries (EF Core handles this) to prevent SQL injection
+- Review OWASP Top 10 when implementing new features
 
 ### Documentation Requirements
 
@@ -168,6 +178,18 @@ Usage metrics and admin dashboard analytics.
 
 See [docs/FEATURES.md](docs/FEATURES.md) for statistics documentation.
 
+### Mod Request System
+
+Community-driven mod request and voting system.
+
+- Users submit mod requests at `/request-mod`
+- Community voting on requests at `/mod-requests`
+- Admin management at `/admin/mod-requests`
+- Request status tracking (Pending, Approved, Rejected, Completed)
+- Activity logging for audit trail
+
+See [docs/FEATURES.md](docs/FEATURES.md) for Mod Request documentation.
+
 ## Data Storage
 
 ### Development
@@ -197,6 +219,16 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment and backup strategie
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - Development guide
 - [docs/FEATURES.md](docs/FEATURES.md) - Feature documentation
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - Deployment guide
+
+## Claude Code Workflow
+
+When working with Claude Code on this project:
+
+- **Use skills** - Invoke appropriate skills for tasks (e.g., `git-branch-manager` for git operations, `security-owasp` for security review)
+- **Update CLAUDE.md** - Keep this file updated when adding new features or services
+- **Git workflow** - Use feature branches (e.g., `feature/feature-name`), never commit directly to main
+- **Verify builds** - Run `dotnet build` and `dotnet test` before committing
+- **Stop running app first** - If build fails with file lock error, stop the running application before building
 
 ## Support
 
