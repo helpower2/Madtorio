@@ -1,0 +1,332 @@
+@page "/request-mod"
+@using Madtorio.Services
+@using Madtorio.Data.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
+@inject IModRequestService ModRequestService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Request a Mod - Madtorio</PageTitle>
+
+<h1>Request a Mod</h1>
+
+@if (isCheckingLimit)
+{
+    <div class="card">
+        <div class="card-body text-center">
+            <p>Checking your request limit...</p>
+        </div>
+    </div>
+}
+else if (!canRequest)
+{
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="alert alert-warning">
+                <h3>Daily Limit Reached</h3>
+                <p>You have already made 5 mod requests today. Please try again tomorrow.</p>
+            </div>
+            <a href="/mod-requests" class="btn">Back to Mod Requests</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <p>You have <strong>@remainingRequests/5</strong> requests remaining today.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mb-3">
+            @errorMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success mb-3">
+            @successMessage
+        </div>
+    }
+
+    @if (currentStep == Step.EnterUrl)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2>Step 1: Enter Mod URL</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="modUrl">Factorio Mod Portal URL</label>
+                    <input type="url" id="modUrl" class="form-control" @bind="modUrl"
+                           placeholder="https://mods.factorio.com/mod/alien-biomes"
+                           disabled="@isLoading" />
+                    <small class="text-muted">
+                        Paste the URL from the Factorio Mod Portal (e.g., https://mods.factorio.com/mod/mod-name)
+                    </small>
+                </div>
+                <div class="mt-3">
+                    <button class="btn" @onclick="FetchModPreview" disabled="@(isLoading || string.IsNullOrWhiteSpace(modUrl))">
+                        @if (isLoading)
+                        {
+                            <span>Fetching...</span>
+                        }
+                        else
+                        {
+                            <span>Fetch Mod Info</span>
+                        }
+                    </button>
+                    <a href="/mod-requests" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    }
+    else if (currentStep == Step.Preview)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2>Step 2: Confirm Your Request</h2>
+            </div>
+            <div class="card-body">
+                @if (modMetadata != null)
+                {
+                    <div class="row">
+                        @if (!string.IsNullOrEmpty(modMetadata.Thumbnail))
+                        {
+                            <div class="col-12 col-md-4 text-center mb-3">
+                                <img src="@modMetadata.Thumbnail" alt="@modMetadata.Title"
+                                     style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 4px;" />
+                            </div>
+                        }
+                        <div class="col-12 @(!string.IsNullOrEmpty(modMetadata.Thumbnail) ? "col-md-8" : "")">
+                            <h3>@modMetadata.Title</h3>
+                            @if (!string.IsNullOrEmpty(modMetadata.Owner))
+                            {
+                                <p><strong>Author:</strong> @modMetadata.Owner</p>
+                            }
+                            @if (!string.IsNullOrEmpty(modMetadata.Category))
+                            {
+                                <p><strong>Category:</strong> @modMetadata.Category</p>
+                            }
+                            <p><strong>Downloads:</strong> @modMetadata.DownloadsCount.ToString("N0")</p>
+                            @if (!string.IsNullOrEmpty(modMetadata.Summary))
+                            {
+                                <p><strong>Summary:</strong> @modMetadata.Summary</p>
+                            }
+                        </div>
+                    </div>
+
+                    @if (existingRequest != null)
+                    {
+                        <div class="alert alert-info mt-3">
+                            <strong>Note:</strong> This mod has already been requested @existingRequest.RequestCount time(s).
+                            Your request will add another vote for this mod.
+                        </div>
+                    }
+
+                    <div class="mt-3">
+                        <button class="btn" @onclick="SubmitRequest" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span>Submitting...</span>
+                            }
+                            else
+                            {
+                                <span>Submit Request</span>
+                            }
+                        </button>
+                        <button class="btn btn-secondary" @onclick="GoBack" disabled="@isLoading">Back</button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<div class="mt-4">
+    <a href="/mod-requests" class="btn btn-secondary">Back to Mod Requests</a>
+</div>
+
+@code {
+    private enum Step { EnterUrl, Preview }
+
+    private Step currentStep = Step.EnterUrl;
+    private string modUrl = "";
+    private ModMetadata? modMetadata;
+    private ModRequest? existingRequest;
+    private bool isLoading;
+    private bool isCheckingLimit = true;
+    private bool canRequest;
+    private int remainingRequests = 5;
+    private string? errorMessage;
+    private string? successMessage;
+    private string? currentUsername;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        currentUsername = authState.User.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(currentUsername))
+        {
+            canRequest = await ModRequestService.CanUserRequestTodayAsync(currentUsername);
+            var requestCount = await ModRequestService.GetUserRequestCountTodayAsync(currentUsername);
+            remainingRequests = 5 - requestCount;
+        }
+
+        isCheckingLimit = false;
+    }
+
+    private async Task FetchModPreview()
+    {
+        errorMessage = null;
+        successMessage = null;
+        isLoading = true;
+
+        try
+        {
+            // Validate URL format
+            if (!IsValidModUrl(modUrl))
+            {
+                errorMessage = "Please enter a valid Factorio Mod Portal URL (e.g., https://mods.factorio.com/mod/mod-name)";
+                return;
+            }
+
+            // Extract mod name and fetch metadata
+            var modName = ExtractModName(modUrl);
+            if (string.IsNullOrEmpty(modName))
+            {
+                errorMessage = "Could not extract mod name from URL";
+                return;
+            }
+
+            // Check if mod already exists in our system
+            existingRequest = await ModRequestService.GetRequestByModNameAsync(modName);
+
+            // Fetch metadata from Factorio API
+            modMetadata = await ModRequestService.FetchModMetadataAsync(modName);
+            if (modMetadata == null)
+            {
+                errorMessage = $"Could not find mod '{modName}' on the Factorio Mod Portal. Please check the URL and try again.";
+                return;
+            }
+
+            currentStep = Step.Preview;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error fetching mod information: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SubmitRequest()
+    {
+        if (string.IsNullOrEmpty(currentUsername)) return;
+
+        errorMessage = null;
+        successMessage = null;
+        isLoading = true;
+
+        try
+        {
+            var (request, isNew) = await ModRequestService.CreateOrIncrementRequestAsync(modUrl, currentUsername);
+
+            if (isNew)
+            {
+                successMessage = $"Successfully requested '{request.ModTitle}'!";
+            }
+            else
+            {
+                successMessage = $"Your vote for '{request.ModTitle}' has been added!";
+            }
+
+            // Update remaining requests
+            var requestCount = await ModRequestService.GetUserRequestCountTodayAsync(currentUsername);
+            remainingRequests = 5 - requestCount;
+            canRequest = remainingRequests > 0;
+
+            // Redirect after a short delay
+            await Task.Delay(1500);
+            NavigationManager.NavigateTo("/mod-requests");
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error submitting request: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        currentStep = Step.EnterUrl;
+        modMetadata = null;
+        existingRequest = null;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private static bool IsValidModUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+
+        try
+        {
+            var uri = new Uri(url);
+            return uri.Host.Equals("mods.factorio.com", StringComparison.OrdinalIgnoreCase)
+                   && uri.AbsolutePath.StartsWith("/mod/", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string? ExtractModName(string url)
+    {
+        try
+        {
+            var uri = new Uri(url);
+            var path = uri.AbsolutePath;
+
+            // Remove /mod/ prefix
+            if (path.StartsWith("/mod/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = path.Substring(5);
+            }
+
+            // Remove any trailing path segments
+            var slashIndex = path.IndexOf('/');
+            if (slashIndex > 0)
+            {
+                path = path.Substring(0, slashIndex);
+            }
+
+            return string.IsNullOrEmpty(path) ? null : path;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+}
