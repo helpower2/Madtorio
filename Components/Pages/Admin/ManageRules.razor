@@ -97,10 +97,10 @@
                                     }
                                 </div>
                                 <div>
-                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => StartEditingCategory(category)">Edit</button>
-                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveCategoryUp(category)">↑</button>
-                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveCategoryDown(category)">↓</button>
-                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => DeleteCategory(category.Id)">Delete</button>
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => StartEditingCategory(category)">Edit</button>
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => MoveCategoryUp(category)">↑</button>
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => MoveCategoryDown(category)">↓</button>
+                                    <button class="btn btn-secondary btn-sm" @onclick="() => DeleteCategory(category.Id)">Delete</button>
                                 </div>
                             </div>
                         }
@@ -132,13 +132,13 @@
                                                 @if (!string.IsNullOrEmpty(rule.DetailedDescription))
                                                 {
                                                     <br />
-                                                    <small style="color: #aaa;">@rule.DetailedDescription</small>
+                                                    <small class="text-muted">@rule.DetailedDescription</small>
                                                 }
                                                 <div class="mt-2">
-                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => StartEditingRule(rule)">Edit</button>
-                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveRuleUp(category.Id, rule)">↑</button>
-                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => MoveRuleDown(category.Id, rule)">↓</button>
-                                                    <button style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background-color: #6c757d; color: white; border: 1px solid #6c757d; border-radius: 0.25rem; cursor: pointer;" @onclick="() => DeleteRule(rule.Id)">Delete</button>
+                                                    <button class="btn btn-secondary btn-sm" @onclick="() => StartEditingRule(rule)">Edit</button>
+                                                    <button class="btn btn-secondary btn-sm" @onclick="() => MoveRuleUp(category.Id, rule)">↑</button>
+                                                    <button class="btn btn-secondary btn-sm" @onclick="() => MoveRuleDown(category.Id, rule)">↓</button>
+                                                    <button class="btn btn-secondary btn-sm" @onclick="() => DeleteRule(rule.Id)">Delete</button>
                                                 </div>
                                             </div>
                                         }

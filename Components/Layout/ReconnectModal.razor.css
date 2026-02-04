@@ -21,13 +21,16 @@
 
 
 #components-reconnect-modal {
-    background-color: white;
+    background-color: var(--factorio-panel, #313031);
+    color: var(--factorio-text, #ffffff);
     width: 20rem;
     margin: 20vh auto;
     padding: 2rem;
-    border: 0;
-    border-radius: 0.5rem;
-    box-shadow: 0 3px 6px 2px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--factorio-border, #2e2623);
+    border-top: 1px solid #424242;
+    border-left: 1px solid #3a3a3a;
+    border-radius: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     opacity: 0;
     transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
     animation: components-reconnect-modal-fadeOutOpacity 0.5s both;
@@ -89,19 +92,30 @@
 }
 
 #components-reconnect-modal button {
-    border: 0;
-    background-color: #6b9ed2;
-    color: white;
-    padding: 4px 24px;
-    border-radius: 4px;
+    background: linear-gradient(to bottom,
+        #ffb833 0%,
+        var(--factorio-orange, #ffa200) 50%,
+        #d98f00 100%
+    );
+    color: var(--factorio-text, #ffffff);
+    border: 1px solid #222;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 3px solid var(--factorio-button-shadow, #604814);
+    padding: 0.5rem 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 0;
 }
 
     #components-reconnect-modal button:hover {
-        background-color: #3b6ea2;
+        background: var(--factorio-orange-hover, #e39827);
     }
 
     #components-reconnect-modal button:active {
-        background-color: #6b9ed2;
+        background: var(--factorio-orange-hover, #e39827);
+        border-bottom-width: 1px;
+        transform: translateY(2px);
     }
 
 .components-rejoining-animation {
@@ -112,7 +126,7 @@
 
     .components-rejoining-animation div {
         position: absolute;
-        border: 3px solid #0087ff;
+        border: 3px solid var(--factorio-orange, #ffa200);
         opacity: 1;
         border-radius: 50%;
         animation: components-rejoining-animation 1.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;

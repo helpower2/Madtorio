@@ -122,6 +122,44 @@ public class UserManagementService : IUserManagementService
         }
     }
 
+    public async Task<IdentityResult> RegisterUserAsync(string username, string password, string email)
+    {
+        try
+        {
+            // Check if username already exists
+            var existingUser = await _userManager.FindByNameAsync(username);
+            if (existingUser != null)
+            {
+                _logger.LogWarning("Attempted to register user with existing username: {Username}", username);
+                return IdentityResult.Failed(new IdentityError { Description = "Username already exists." });
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = username,
+                Email = email,
+                RequirePasswordChange = false, // Self-registered users don't need to change password
+                PasswordLastChanged = DateTime.UtcNow
+            };
+
+            // Create user with their chosen password
+            var createResult = await _userManager.CreateAsync(user, password);
+            if (!createResult.Succeeded)
+            {
+                _logger.LogWarning("Failed to register user {Username}: {Errors}", username, string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                return createResult;
+            }
+
+            _logger.LogInformation("User {Username} registered successfully", username);
+            return IdentityResult.Success;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error registering user {Username}", username);
+            throw;
+        }
+    }
+
     public async Task<IdentityResult> UpdateUserAsync(string userId, string username, string? email = null, bool isAdmin = false)
     {
         try

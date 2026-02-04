@@ -26,6 +26,11 @@ public interface IUserManagementService
     Task<IdentityResult> CreateUserAsync(string username, string temporaryPassword, string? email = null, bool isAdmin = false);
 
     /// <summary>
+    /// Creates a new user for self-registration (no password change required).
+    /// </summary>
+    Task<IdentityResult> RegisterUserAsync(string username, string password, string email);
+
+    /// <summary>
     /// Updates an existing user's username, email, and admin status.
     /// </summary>
     Task<IdentityResult> UpdateUserAsync(string userId, string username, string? email = null, bool isAdmin = false);
