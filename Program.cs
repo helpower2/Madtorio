@@ -114,6 +114,7 @@ builder.Services.AddScoped<Madtorio.Services.IChunkedFileUploadService, Madtorio
 builder.Services.AddScoped<Madtorio.Services.IRulesService, Madtorio.Services.RulesService>();
 builder.Services.AddScoped<Madtorio.Services.IStatisticsService, Madtorio.Services.StatisticsService>();
 builder.Services.AddScoped<Madtorio.Services.IUserManagementService, Madtorio.Services.UserManagementService>();
+builder.Services.AddHttpClient<Madtorio.Services.IModRequestService, Madtorio.Services.ModRequestService>();
 
 // Register HttpContextAccessor for user context access in services
 builder.Services.AddHttpContextAccessor();

@@ -1,0 +1,305 @@
+@page "/mod-requests"
+@using Madtorio.Services
+@using Madtorio.Data.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IModRequestService ModRequestService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Mod Requests - Madtorio</PageTitle>
+
+<h1>Mod Requests</h1>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        @if (lastVoteReset.HasValue)
+                        {
+                            <p class="mb-0">
+                                <strong>Last vote reset:</strong> @lastVoteReset.Value.ToString("MMMM dd, yyyy")
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="mb-0">
+                                <strong>Votes have never been reset</strong>
+                            </p>
+                        }
+                    </div>
+                    <AuthorizeView>
+                        <Authorized>
+                            <div class="d-flex align-items-center gap-3">
+                                <span>You have <strong>@remainingRequests/5</strong> requests remaining today</span>
+                                @if (remainingRequests > 0)
+                                {
+                                    <a href="/request-mod" class="btn">Request a Mod</a>
+                                }
+                                else
+                                {
+                                    <button class="btn" disabled>Daily Limit Reached</button>
+                                }
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="Account/Login" class="btn">Login to Request Mods</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tabs mb-3">
+    <button class="@(activeFilter == null ? "tab-active" : "")" @onclick="@(() => SetFilter(null))">
+        All (@allRequests.Count)
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Pending ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Pending))">
+        Pending (@allRequests.Count(r => r.Status == ModRequestStatus.Pending))
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Approved ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Approved))">
+        Approved (@allRequests.Count(r => r.Status == ModRequestStatus.Approved))
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Installed ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Installed))">
+        Installed (@allRequests.Count(r => r.Status == ModRequestStatus.Installed))
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="card">
+        <div class="card-body text-center">
+            <p>Loading mod requests...</p>
+        </div>
+    </div>
+}
+else if (!filteredRequests.Any())
+{
+    <div class="card">
+        <div class="card-body text-center">
+            <p class="text-muted">No mod requests found.</p>
+            <AuthorizeView>
+                <Authorized>
+                    @if (remainingRequests > 0)
+                    {
+                        <a href="/request-mod" class="btn">Be the first to request a mod!</a>
+                    }
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var request in filteredRequests)
+        {
+            <div class="col-12 col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-start">
+                        <div style="flex: 1; min-width: 0;">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@request.ModTitle">
+                                @request.ModTitle
+                            </h3>
+                            @if (!string.IsNullOrEmpty(request.Author))
+                            {
+                                <small class="text-muted">by @request.Author</small>
+                            }
+                        </div>
+                        <span class="badge @GetStatusBadgeClass(request.Status)" style="flex-shrink: 0; margin-left: 0.5rem;">
+                            @request.Status
+                        </span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        @if (!string.IsNullOrEmpty(request.ThumbnailUrl))
+                        {
+                            <div class="text-center mb-3">
+                                <img src="@request.ThumbnailUrl" alt="@request.ModTitle"
+                                     style="max-width: 100%; max-height: 120px; object-fit: contain; border-radius: 4px;" />
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(request.Summary))
+                        {
+                            <p class="text-muted" style="font-size: 0.9rem; flex-grow: 1;">
+                                @TruncateSummary(request.Summary, 150)
+                            </p>
+                        }
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">
+                                    Requested @request.RequestCount time@(request.RequestCount != 1 ? "s" : "")
+                                </small>
+                                @if (!string.IsNullOrEmpty(request.Category))
+                                {
+                                    <span class="badge" style="background-color: #6c757d;">@request.Category</span>
+                                }
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <AuthorizeView>
+                                    <Authorized>
+                                        <button class="btn @(userVotes.Contains(request.Id) ? "btn-voted" : "")"
+                                                style="padding: 0.25rem 0.75rem; font-size: 0.9rem;"
+                                                @onclick="() => ToggleVote(request.Id)">
+                                            @if (userVotes.Contains(request.Id))
+                                            {
+                                                <span>&#9650; @request.Votes.Count</span>
+                                            }
+                                            else
+                                            {
+                                                <span>&#9651; @request.Votes.Count</span>
+                                            }
+                                        </button>
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <span class="text-muted">&#9651; @request.Votes.Count votes</span>
+                                    </NotAuthorized>
+                                </AuthorizeView>
+                                <a href="@request.ModUrl" target="_blank" class="btn btn-secondary"
+                                   style="padding: 0.25rem 0.75rem; font-size: 0.9rem;">
+                                    View Mod
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .btn-voted {
+        background-color: var(--factorio-orange) !important;
+        color: white !important;
+    }
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: normal;
+    }
+</style>
+
+@code {
+    private List<ModRequest> allRequests = new();
+    private List<ModRequest> filteredRequests = new();
+    private HashSet<int> userVotes = new();
+    private ModRequestStatus? activeFilter;
+    private DateTime? lastVoteReset;
+    private int remainingRequests = 5;
+    private bool isLoading = true;
+    private string? currentUsername;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            // Get current user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            currentUsername = authState.User.Identity?.Name;
+
+            // Load all requests
+            allRequests = await ModRequestService.GetAllRequestsAsync();
+            ApplyFilter();
+
+            // Load last vote reset date
+            lastVoteReset = await ModRequestService.GetLastVoteResetDateAsync();
+
+            // Load user-specific data
+            if (!string.IsNullOrEmpty(currentUsername))
+            {
+                var requestCount = await ModRequestService.GetUserRequestCountTodayAsync(currentUsername);
+                remainingRequests = 5 - requestCount;
+
+                // Check which mods the user has voted for from already-loaded data
+                userVotes.Clear();
+                foreach (var request in allRequests)
+                {
+                    if (request.Votes.Any(v => v.Username == currentUsername))
+                    {
+                        userVotes.Add(request.Id);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading mod requests: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SetFilter(ModRequestStatus? status)
+    {
+        activeFilter = status;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        if (activeFilter.HasValue)
+        {
+            filteredRequests = allRequests.Where(r => r.Status == activeFilter.Value).ToList();
+        }
+        else
+        {
+            filteredRequests = allRequests.ToList();
+        }
+    }
+
+    private async Task ToggleVote(int modRequestId)
+    {
+        if (string.IsNullOrEmpty(currentUsername)) return;
+
+        try
+        {
+            var isNowVoted = await ModRequestService.ToggleVoteAsync(modRequestId, currentUsername);
+
+            if (isNowVoted)
+            {
+                userVotes.Add(modRequestId);
+            }
+            else
+            {
+                userVotes.Remove(modRequestId);
+            }
+
+            // Reload to get updated vote counts
+            allRequests = await ModRequestService.GetAllRequestsAsync();
+            ApplyFilter();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling vote: {ex.Message}");
+        }
+    }
+
+    private static string GetStatusBadgeClass(ModRequestStatus status) => status switch
+    {
+        ModRequestStatus.Pending => "bg-warning text-dark",
+        ModRequestStatus.Approved => "bg-info",
+        ModRequestStatus.Installed => "bg-success",
+        ModRequestStatus.Rejected => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    private static string TruncateSummary(string summary, int maxLength)
+    {
+        if (string.IsNullOrEmpty(summary) || summary.Length <= maxLength)
+            return summary;
+        return summary.Substring(0, maxLength).TrimEnd() + "...";
+    }
+}
