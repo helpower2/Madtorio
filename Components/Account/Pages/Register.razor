@@ -12,48 +12,48 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register</PageTitle>
+<PageTitle>Register - Madtorio</PageTitle>
 
-<h1 class="text-center">Register</h1>
-<div class="row justify-content-center">
-    <div class="col-lg-6">
-        <section>
-            <StatusMessage Message="@errorMessage" />
-            <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
-                <DataAnnotationsValidator />
-                <h2 class="text-center">Create a new account.</h2>
-                <hr />
-                <ValidationSummary class="text-danger" role="alert" />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder="FactorioPlayer123" />
-                    <label for="Input.Username" class="form-label">Factorio Username</label>
-                    <ValidationMessage For="() => Input.Username" class="text-danger" />
-                    <small class="text-muted">Use your Factorio in-game username</small>
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="name@example.com" />
-                    <label for="Input.Email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                    <label for="Input.Password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="confirm password" />
-                    <label for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
-                    <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-                </div>
-                <hr />
-                <div class="text-center">
-                    <p>Already have an account? <a href="Account/Login">Log in</a></p>
-                </div>
-            </EditForm>
-        </section>
+<div class="card">
+    <div class="card-header">
+        <h1>Engineer Registration</h1>
+    </div>
+    <div class="card-body">
+        <StatusMessage Message="@errorMessage" />
+        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register" style="align-self: stretch;">
+            <DataAnnotationsValidator />
+            <h2>Join the factory.</h2>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username" aria-required="true" placeholder=" " />
+                <label for="Input.Username" class="form-label">Factorio Username</label>
+                <ValidationMessage For="() => Input.Username" class="text-danger" />
+                <small class="text-muted">Use your Factorio in-game username</small>
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder=" " />
+                <label for="Input.Email" class="form-label">Email</label>
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder=" " />
+                <label for="Input.Password" class="form-label">Password</label>
+                <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder=" " />
+                <label for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+            <div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            </div>
+        </EditForm>
+        <div class="panel-inset mt-3" style="text-align: center; align-self: stretch;">
+            <span style="color: var(--factorio-text-muted); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">Already an engineer?</span>
+            <a href="Account/Login" class="btn btn-secondary w-100 mt-2">Log in</a>
+        </div>
     </div>
 </div>
 
