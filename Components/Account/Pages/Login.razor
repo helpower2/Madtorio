@@ -11,48 +11,44 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Log in - Madtorio</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
-    <div class="col-lg-6">
-        <section>
-            <StatusMessage Message="@errorMessage" />
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator />
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <ValidationSummary class="text-danger" role="alert" />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="username" />
-                    <label for="Input.Username" class="form-label">Username</label>
-                    <ValidationMessage For="() => Input.Username" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label for="Input.Password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Remember me
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <hr />
-                <div class="d-flex flex-column">
-                    <span class="text-secondary mx-auto mt-2">OR</span>
-                    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Username" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-                </div>
-                <hr />
-                <div class="text-center">
-                    <p>Don't have an account? <a href="Account/Register">Register</a></p>
-                </div>
-            </EditForm>
-        </section>
+<div class="card">
+    <div class="card-header">
+        <h1>Engineer Login</h1>
+    </div>
+    <div class="card-body">
+        <StatusMessage Message="@errorMessage" />
+        <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login" style="align-self: stretch;">
+            <DataAnnotationsValidator />
+            <h2>Access the factory control panel.</h2>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Username" id="Input.Username" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder=" " />
+                <label for="Input.Username" class="form-label">Username</label>
+                <ValidationMessage For="() => Input.Username" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder=" " />
+                <label for="Input.Password" class="form-label">Password</label>
+                <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+            <div class="checkbox mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
+                    Remember me
+                </label>
+            </div>
+            <div class="d-flex gap-2">
+                <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Username" class="btn btn-lg btn-secondary" style="flex: 1;">Passkey</PasskeySubmit>
+                <button type="submit" class="btn btn-lg btn-primary" style="flex: 1;">Log in</button>
+            </div>
+        </EditForm>
+        <div class="panel-inset mt-3" style="text-align: center; align-self: stretch;">
+            <span style="color: var(--factorio-text-muted); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">New to the factory?</span>
+            <a href="Account/Register" class="btn btn-secondary w-100 mt-2">Register</a>
+        </div>
     </div>
 </div>
 
