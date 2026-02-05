@@ -16,36 +16,36 @@
         <div class="nav-menu">
             <div class="nav-items-left">
                 <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>Home
                 </NavLink>
 
                 <NavLink class="nav-link" href="downloads">
-                    <span class="bi bi-download-nav-menu" aria-hidden="true"></span> Downloads
+                    <span class="bi bi-download-nav-menu" aria-hidden="true"></span>Downloads
                 </NavLink>
 
                 <NavLink class="nav-link" href="about">
-                    <span class="bi bi-info-circle-nav-menu" aria-hidden="true"></span> About
+                    <span class="bi bi-info-circle-nav-menu" aria-hidden="true"></span>About
                 </NavLink>
 
                 <NavLink class="nav-link" href="rules">
-                    <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Rules
+                    <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span>Rules
                 </NavLink>
 
                 <NavLink class="nav-link" href="server-info">
-                    <span class="bi bi-hdd-network-nav-menu" aria-hidden="true"></span> Server Info
+                    <span class="bi bi-hdd-network-nav-menu" aria-hidden="true"></span>Server Info
                 </NavLink>
 
                 <NavLink class="nav-link" href="mod-requests">
-                    <span class="bi bi-puzzle-nav-menu" aria-hidden="true"></span> Mod Requests
+                    <span class="bi bi-puzzle-nav-menu" aria-hidden="true"></span>Mod Requests
                 </NavLink>
 
                 <AuthorizeView Roles="Admin">
                     <Authorized>
                         <NavLink class="nav-link" href="admin">
-                            <span class="bi bi-gear-nav-menu" aria-hidden="true"></span> Admin
+                            <span class="bi bi-gear-nav-menu" aria-hidden="true"></span>Admin
                         </NavLink>
                         <NavLink class="nav-link" href="admin/users">
-                            <span class="bi bi-people-nav-menu" aria-hidden="true"></span> Manage Users
+                            <span class="bi bi-people-nav-menu" aria-hidden="true"></span>Manage Users
                         </NavLink>
                     </Authorized>
                 </AuthorizeView>
@@ -55,19 +55,19 @@
                 <AuthorizeView>
                     <Authorized>
                         <NavLink class="nav-link" href="Account/Manage">
-                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span>@context.User.Identity?.Name
                         </NavLink>
                         <form action="Account/Logout" method="post" class="logout-form">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                             <button type="submit" class="nav-link">
-                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span>Logout
                             </button>
                         </form>
                     </Authorized>
                     <NotAuthorized>
                         <NavLink class="nav-link" href="Account/Login">
-                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span>Login
                         </NavLink>
                     </NotAuthorized>
                 </AuthorizeView>
