@@ -1,16 +1,16 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @layout Madtorio.Components.Layout.MainLayout
 
-<h1>Manage your account</h1>
-
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-lg-3">
+<div class="card manage-card">
+    <div class="card-header">
+        <h1>Engineer Control Panel</h1>
+    </div>
+    <div class="card-body">
+        <div class="manage-nav">
             <ManageNavMenu />
         </div>
-        <div class="col-lg-9">
+        <hr style="width: 100%;" />
+        <div class="manage-content">
             @Body
         </div>
     </div>

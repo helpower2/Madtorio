@@ -6,19 +6,13 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Manage email</PageTitle>
+<PageTitle>Email - Madtorio</PageTitle>
 
-<h3>Email</h3>
-
-<div class="row">
-    <div class="col-xl-6">
-        <div class="form-floating mb-3">
-            <input type="text" value="@email" id="email" class="form-control" disabled />
-            <label for="email" class="form-label">Email</label>
-        </div>
-        <p class="text-muted">Email is managed by administrators.</p>
-    </div>
+<div class="form-floating mb-3">
+    <input type="text" value="@email" id="email" class="form-control" placeholder=" " disabled />
+    <label for="email" class="form-label">Email</label>
 </div>
+<p class="text-muted">Email is managed by administrators.</p>
 
 @code {
     private string? email;
