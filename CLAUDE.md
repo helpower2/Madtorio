@@ -57,6 +57,7 @@ dotnet test
 - `IChunkedFileUploadService` - Chunked file upload handling
 - `IRulesService` - Rules and server configuration management
 - `IStatisticsService` - Usage tracking and metrics
+- `IModRequestService` - Community mod request submissions and voting
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed service documentation.
 
@@ -87,6 +88,15 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed service documentat
 - Implement tests for all new features and functionality
 - Tests must pass before committing: `dotnet test`
 - When creating new components, add them to `/admin/component-test` page
+
+### Security Considerations
+
+- Validate all user input on server-side (never trust client-side validation alone)
+- Use `[Authorize]` attributes on all authenticated endpoints
+- Admin pages require `[Authorize(Roles = "Admin")]` or `[Authorize(Policy = "Admin")]`
+- Sanitize user-generated content to prevent XSS
+- Use parameterized queries (EF Core handles this) to prevent SQL injection
+- Review OWASP Top 10 when implementing new features
 
 ### Documentation Requirements
 
@@ -168,6 +178,18 @@ Usage metrics and admin dashboard analytics.
 
 See [docs/FEATURES.md](docs/FEATURES.md) for statistics documentation.
 
+### Mod Request System
+
+Community-driven mod request and voting system.
+
+- Users submit mod requests at `/request-mod`
+- Community voting on requests at `/mod-requests`
+- Admin management at `/admin/mod-requests`
+- Request status tracking (Pending, Approved, Rejected, Completed)
+- Activity logging for audit trail
+
+See [docs/FEATURES.md](docs/FEATURES.md) for Mod Request documentation.
+
 ## Data Storage
 
 ### Development
@@ -197,6 +219,45 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for deployment and backup strategie
 - [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - Development guide
 - [docs/FEATURES.md](docs/FEATURES.md) - Feature documentation
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - Deployment guide
+
+## Claude Code Workflow
+
+When working with Claude Code on this project:
+
+- **Use skills** - Invoke appropriate skills for tasks (e.g., `git-branch-manager` for git operations, `security-owasp` for security review)
+- **Update CLAUDE.md** - Keep this file updated when adding new features or services
+- **Git workflow** - Use feature branches (e.g., `feature/feature-name`), never commit directly to main
+- **Verify builds** - Run `dotnet build` and `dotnet test` before committing
+- **Stop running app first** - If build fails with file lock error, stop the running application before building
+
+### MCP Servers Available
+
+#### Microsoft Learn
+
+Access official Microsoft and Azure documentation for .NET, ASP.NET Core, Blazor, and Entity Framework guidance.
+
+| Tool | Purpose |
+|------|---------|
+| `microsoft_docs_search` | Search docs, returns up to 10 content chunks (500 tokens each) with title, URL, excerpt |
+| `microsoft_code_sample_search` | Search for code snippets, returns up to 20 samples (optional `language` filter) |
+| `microsoft_docs_fetch` | Fetch full documentation page as markdown for detailed content |
+
+**Workflow**: Search first for overview → Code samples for examples → Fetch for full details when needed
+
+### Custom Agents
+
+Project-specific agents in `.claude/agents/`:
+
+| Agent | Purpose |
+|-------|---------|
+| `csharp-function-manager` | Create, edit, and refactor C# functions/services with security patterns, Microsoft docs lookup, and architecture validation |
+| `csharp-test-writer` | Write unit and integration tests following xUnit conventions |
+| `architecture-enforcer` | Validate file placement and ensure architectural consistency |
+| `razor-feature-implementer` | Implement Razor component features following project patterns |
+| `razor-ux-reviewer` | Review Razor components for UX and accessibility |
+| `git-branch-manager` | Manage git branches and push workflows |
+
+**When to use `csharp-function-manager`**: Creating, editing, or refactoring service methods, API endpoints, or any C# function. It manages the full code lifecycle while applying OWASP security patterns and validating architecture.
 
 ## Support
 

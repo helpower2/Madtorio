@@ -79,19 +79,19 @@ else
                             <td>
                                 @if (editingSaveId == save.Id)
                                 {
-                                    <button @onclick="() => SaveEdit(save)" class="btn" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem;">
+                                    <button @onclick="() => SaveEdit(save)" class="btn me-2 btn-sm">
                                         Save
                                     </button>
-                                    <button @onclick="CancelEdit" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;">
+                                    <button @onclick="CancelEdit" class="btn btn-secondary btn-sm">
                                         Cancel
                                     </button>
                                 }
                                 else
                                 {
-                                    <button @onclick="() => StartEdit(save)" class="btn" style="margin-right: 0.5rem; padding: 0.4rem 0.8rem;">
+                                    <button @onclick="() => StartEdit(save)" class="btn me-2 btn-sm">
                                         Edit
                                     </button>
-                                    <button @onclick="() => ShowDeleteConfirm(save)" class="btn btn-danger" style="padding: 0.4rem 0.8rem;">
+                                    <button @onclick="() => ShowDeleteConfirm(save)" class="btn btn-danger btn-sm">
                                         Delete
                                     </button>
                                 }
@@ -125,7 +125,7 @@ else
                         <span>Yes, Delete</span>
                     }
                 </button>
-                <button @onclick="CancelDelete" class="btn btn-secondary" style="margin-left: 0.5rem;" disabled="@deleting">
+                <button @onclick="CancelDelete" class="btn btn-secondary ms-2" disabled="@deleting">
                     Cancel
                 </button>
             </div>

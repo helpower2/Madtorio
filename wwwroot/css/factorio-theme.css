@@ -1,27 +1,68 @@
 /* Factorio Theme - Official Colors from factorio.com */
 
 :root {
-    /* Official Factorio.com Colors */
+    /* === BACKGROUND COLORS === */
     --factorio-bg: #201810;             /* Main body background */
     --factorio-darker-bg: #181410;      /* Darker background variant */
     --factorio-panel: #313031;          /* Primary panel background */
     --factorio-panel-lighter: #414040;  /* Secondary panel background */
     --factorio-panel-dark: #242324;     /* Inset panel background */
-    --factorio-border: #2e2623;         /* Panel borders */
+
+    /* === TEXT COLORS === */
     --factorio-text: #ffffff;           /* Primary white text */
     --factorio-text-cream: #ffe6c0;     /* Headers, emphasis (cream) */
+    --factorio-text-muted: #999999;     /* Muted/secondary text */
+    --factorio-text-muted-light: #a6a6a6; /* Lighter muted text */
+    --factorio-text-secondary: #b0b0b0; /* Secondary text */
+    --factorio-text-disabled: #666666;  /* Disabled text */
+    --factorio-text-dark: #000000;      /* Dark text (for light backgrounds) */
+
+    /* === BORDER COLORS === */
+    --factorio-border: #2e2623;         /* Panel borders */
+    --factorio-border-light: #424242;   /* Light border (top/left highlight) */
+    --factorio-border-medium: #3a3a3a;  /* Medium border */
+    --factorio-border-dark: #1a1a1a;    /* Dark border (bottom/right shadow) */
+    --factorio-border-button: #222222;  /* Button border */
+
+    /* === ACCENT COLORS === */
     --factorio-orange: #ffa200;         /* Orange accent */
     --factorio-orange-hover: #e39827;   /* Orange hover state */
-    --factorio-button-bg: #8e8e8e;      /* Default button background */
-    --factorio-button-shadow: #604814;  /* Button shadow */
-    --factorio-button-shadow-dark: #432400; /* Button pressed shadow */
+    --factorio-orange-light: #ffb833;   /* Light orange (gradients) */
+    --factorio-orange-dark: #d98f00;    /* Dark orange (gradients) */
     --factorio-green: #5eb663;          /* Green button */
     --factorio-green-hover: #92e897;    /* Green hover */
     --factorio-red: #fe5a5a;            /* Red button */
     --factorio-red-hover: #ff9b9b;      /* Red hover */
     --factorio-link: #7dcaed;           /* Link blue */
     --factorio-link-hover: #9ad1ea;     /* Link hover */
+
+    /* === BUTTON COLORS === */
+    --factorio-button-bg: #8e8e8e;      /* Default button background */
+    --factorio-button-bg-hover: #9e9e9e; /* Button hover */
+    --factorio-button-shadow: #604814;  /* Button shadow */
+    --factorio-button-shadow-dark: #432400; /* Button pressed shadow */
+    --factorio-button-secondary-shadow: #515050; /* Secondary button shadow */
+    --factorio-button-danger-shadow: #642323; /* Danger button shadow */
+    --factorio-button-disabled-shadow: #2b2b2b; /* Disabled button shadow */
     --factorio-disabled: #3d3d3d;       /* Disabled state */
+
+    /* === GRADIENT/HEADER COLORS === */
+    --factorio-header-gradient: #4a4a4a; /* Header gradient start */
+
+    /* === FORM COLORS === */
+    --factorio-input-focus-bg: #f0dab4; /* Input focus background */
+
+    /* === ALERT COLORS === */
+    --factorio-alert-success-bg: #1a3a1a;
+    --factorio-alert-success-border: #28a745;
+    --factorio-alert-success-text: #4cff4c;
+    --factorio-alert-danger-bg: #3a1a1a;
+    --factorio-alert-danger-text: #ff6666;
+    --factorio-alert-info-bg: #1a2a3a;
+    --factorio-alert-info-border: #17a2b8;
+    --factorio-alert-info-text: #4cc8ff;
+    --factorio-alert-warning-bg: #3a2a1a;
+    --factorio-alert-warning-text: #ffc966;
 }
 
 /* Global Styles */
@@ -32,6 +73,17 @@ body {
     line-height: 1.6;
     margin: 0;
     padding: 0;
+}
+
+/* Subtle Background Noise Texture */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    z-index: 10000;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -58,9 +110,15 @@ a:hover {
 
 /* Buttons - Factorio.com Official Style */
 .btn, button:not(.navbar-toggler) {
-    background: var(--factorio-orange);
+    background: linear-gradient(to bottom,
+        var(--factorio-orange-light) 0%,
+        var(--factorio-orange) 50%,
+        var(--factorio-orange-dark) 100%
+    );
     color: var(--factorio-text);
-    border: 1px solid #222;
+    border: 1px solid var(--factorio-border-button);
+    border-top: 1px solid rgba(255,255,255,0.2);
+    border-left: 1px solid rgba(255,255,255,0.1);
     border-bottom: 3px solid var(--factorio-button-shadow);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
     padding: 0.75rem 1.5rem;
@@ -89,17 +147,17 @@ a:hover {
 .btn-secondary {
     background: var(--factorio-button-bg);
     color: var(--factorio-text);
-    border-bottom: 3px solid #515050;
+    border-bottom: 3px solid var(--factorio-button-secondary-shadow);
 }
 
 .btn-secondary:hover {
-    background: #9e9e9e;
+    background: var(--factorio-button-bg-hover);
 }
 
 .btn-danger {
     background: var(--factorio-red);
     color: var(--factorio-text);
-    border-bottom: 3px solid #642323;
+    border-bottom: 3px solid var(--factorio-button-danger-shadow);
 }
 
 .btn-danger:hover {
@@ -108,15 +166,18 @@ a:hover {
 
 .btn:disabled, button:disabled {
     background: var(--factorio-disabled);
-    color: #666;
+    color: var(--factorio-text-disabled);
     cursor: not-allowed;
-    border-bottom: 3px solid #2b2b2b;
+    border-bottom: 3px solid var(--factorio-button-disabled-shadow);
 }
 
 /* Factorio Panel System */
 .panel {
     background-color: var(--factorio-panel);
-    border: 1px solid var(--factorio-border);
+    border-top: 1px solid var(--factorio-border-light);
+    border-left: 1px solid var(--factorio-border-medium);
+    border-bottom: 1px solid var(--factorio-border-dark);
+    border-right: 1px solid var(--factorio-border-dark);
     box-shadow: 0 2px 3px rgba(0,0,0,0.3);
     padding: 0;
     margin-bottom: 1.5rem;
@@ -137,8 +198,13 @@ a:hover {
 }
 
 .panel-header {
-    background: var(--factorio-panel-lighter);
-    border-bottom: 1px solid var(--factorio-border);
+    background: linear-gradient(to bottom,
+        var(--factorio-header-gradient) 0%,
+        var(--factorio-panel-lighter) 15%,
+        var(--factorio-panel) 100%
+    );
+    border-bottom: 1px solid var(--factorio-border-dark);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     padding: 0.75rem 1rem;
     font-weight: bold;
     text-transform: uppercase;
@@ -147,17 +213,31 @@ a:hover {
 
 .panel-body {
     padding: 1.5rem;
+    text-align: center !important;
+}
+
+/* Keep structured elements in panels left-aligned */
+.panel-body table,
+.panel-body form,
+.panel-body ul,
+.panel-body ol {
+    text-align: left;
 }
 
 /* Legacy card support - maps to panel system */
 .card {
     background-color: var(--factorio-panel);
-    border: 1px solid var(--factorio-border);
+    border-top: 1px solid var(--factorio-border-light);
+    border-left: 1px solid var(--factorio-border-medium);
+    border-bottom: 1px solid var(--factorio-border-dark);
+    border-right: 1px solid var(--factorio-border-dark);
     box-shadow: 0 2px 3px rgba(0,0,0,0.3);
     border-radius: 0;
     padding: 0;
-    margin-bottom: 1.5rem;
     transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .card:hover {
@@ -167,18 +247,56 @@ a:hover {
 }
 
 .card-header {
-    background: var(--factorio-panel-lighter);
-    border-bottom: 1px solid var(--factorio-border);
-    padding: 0.75rem 1rem;
+    background: linear-gradient(to bottom,
+        var(--factorio-header-gradient) 0%,
+        var(--factorio-panel-lighter) 15%,
+        var(--factorio-panel) 100%
+    );
+    border-bottom: 1px solid var(--factorio-border-dark);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    padding: 0.5rem 1rem;
     font-weight: bold;
     text-transform: uppercase;
     color: var(--factorio-text-cream);
+}
+
+.card-header h1,
+.card-header h2,
+.card-header h3,
+.card-header h4 {
+    margin: 0;
 }
 
 .card-body {
     background: var(--factorio-panel);
     padding: 1.5rem;
     color: var(--factorio-text);
+    text-align: center !important;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-body > p {
+    width: 100%;
+}
+
+/* Quick actions: horizontal button row */
+.quick-actions {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-start;
+}
+
+/* Keep structured elements in cards left-aligned */
+.card-body table,
+.card-body form,
+.card-body ul,
+.card-body ol {
+    text-align: left;
 }
 
 /* Forms - Inset Style */
@@ -186,17 +304,19 @@ a:hover {
     background: var(--factorio-panel-dark);
     color: var(--factorio-text);
     border: 1px solid var(--factorio-border);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.2);
     border-radius: 0;
     padding: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
     transition: all 0.2s ease;
 }
 
 .form-control:focus, input:focus, textarea:focus, select:focus {
-    background: #f0dab4;
+    background: var(--factorio-input-focus-bg);
     border-color: var(--factorio-border);
     outline: none;
-    color: #000;
+    color: var(--factorio-text-dark);
 }
 
 .form-label {
@@ -218,7 +338,11 @@ table {
 }
 
 th {
-    background: var(--factorio-panel-lighter);
+    background: linear-gradient(to bottom,
+        var(--factorio-header-gradient) 0%,
+        var(--factorio-panel-lighter) 100%
+    );
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     color: var(--factorio-text-cream);
     padding: 0.75rem;
     text-align: left;
@@ -239,9 +363,12 @@ tr:hover td {
 
 /* Navigation - Panel Style */
 .navbar {
-    background: var(--factorio-panel);
-    border-bottom: 2px solid var(--factorio-border);
-    box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    background: linear-gradient(to bottom,
+        var(--factorio-border-medium) 0%,
+        var(--factorio-panel) 100%
+    );
+    border-bottom: 2px solid var(--factorio-border-dark);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
     padding: 1rem 0;
 }
 
@@ -273,27 +400,27 @@ tr:hover td {
 }
 
 .alert-success {
-    background-color: #1a3a1a;
-    border-color: #28a745;
-    color: #4cff4c;
+    background-color: var(--factorio-alert-success-bg);
+    border-color: var(--factorio-alert-success-border);
+    color: var(--factorio-alert-success-text);
 }
 
 .alert-danger {
-    background-color: #3a1a1a;
+    background-color: var(--factorio-alert-danger-bg);
     border-color: var(--factorio-red);
-    color: #ff6666;
+    color: var(--factorio-alert-danger-text);
 }
 
 .alert-info {
-    background-color: #1a2a3a;
-    border-color: #17a2b8;
-    color: #4cc8ff;
+    background-color: var(--factorio-alert-info-bg);
+    border-color: var(--factorio-alert-info-border);
+    color: var(--factorio-alert-info-text);
 }
 
 .alert-warning {
-    background-color: #3a2a1a;
+    background-color: var(--factorio-alert-warning-bg);
     border-color: var(--factorio-orange);
-    color: #ffc966;
+    color: var(--factorio-alert-warning-text);
 }
 
 /* Utility Classes */
@@ -332,7 +459,10 @@ tr:hover td {
 /* Save File Card - Panel Style */
 .save-file-card {
     background: var(--factorio-panel);
-    border: 1px solid var(--factorio-border);
+    border-top: 1px solid var(--factorio-border-light);
+    border-left: 1px solid var(--factorio-border-medium);
+    border-bottom: 1px solid var(--factorio-border-dark);
+    border-right: 1px solid var(--factorio-border-dark);
     box-shadow: 0 2px 3px rgba(0,0,0,0.3);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
@@ -351,7 +481,7 @@ tr:hover td {
 }
 
 .save-file-card .metadata {
-    color: #999999;
+    color: var(--factorio-text-muted);
     font-size: 0.9rem;
     margin-bottom: 1rem;
 }
@@ -364,25 +494,38 @@ tr:hover td {
 
 /* Hero Section - Panel Style */
 .hero {
-    background: var(--factorio-panel);
-    border: 1px solid var(--factorio-border);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
-    padding: 3rem 2rem;
+    background: linear-gradient(to bottom,
+        var(--factorio-panel-lighter) 0%,
+        var(--factorio-panel) 100%
+    );
+    border-top: 1px solid var(--factorio-header-gradient);
+    border-left: 1px solid var(--factorio-border-medium);
+    border-bottom: 2px solid var(--factorio-border-dark);
+    border-right: 1px solid var(--factorio-border-dark);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    padding: 2rem 2rem;
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .hero h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem 0;
     color: var(--factorio-text-cream);
     text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
 }
 
 .hero p {
     font-size: 1.2rem;
-    margin-bottom: 2rem;
+    margin: 0 0 1rem 0;
     color: var(--factorio-text);
+}
+
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 /* Footer */
@@ -396,7 +539,577 @@ footer {
 
 footer p {
     margin: 0;
-    color: #a6a6a6;
+    color: var(--factorio-text-muted-light);
+}
+
+/* Bootstrap Overrides for Factorio Theme */
+
+/* Form Floating Labels */
+.form-floating > label {
+    color: var(--factorio-text-cream);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--factorio-orange);
+}
+
+/* Form Check (Checkboxes and Radios) */
+.form-check-input {
+    background-color: var(--factorio-panel-dark);
+    border: 1px solid var(--factorio-border);
+}
+
+.form-check-input:checked {
+    background-color: var(--factorio-orange);
+    border-color: var(--factorio-orange);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 162, 0, 0.25);
+    border-color: var(--factorio-orange);
+}
+
+.form-check-label {
+    color: var(--factorio-text);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background-color: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    border-top: 1px solid var(--factorio-border-light);
+    border-left: 1px solid var(--factorio-border-medium);
+    border-bottom: 1px solid var(--factorio-border-dark);
+    border-right: 1px solid var(--factorio-border-dark);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.dropdown-item {
+    color: var(--factorio-text);
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--factorio-panel-lighter);
+    color: var(--factorio-text);
+}
+
+.dropdown-divider {
+    border-color: var(--factorio-border);
+}
+
+/* Modals */
+.modal-content {
+    background-color: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    border-top: 1px solid var(--factorio-border-light);
+    border-left: 1px solid var(--factorio-border-medium);
+    border-bottom: 1px solid var(--factorio-border-dark);
+    border-right: 1px solid var(--factorio-border-dark);
+    border-radius: 0;
+}
+
+.modal-header {
+    background: linear-gradient(to bottom,
+        var(--factorio-header-gradient) 0%,
+        var(--factorio-panel-lighter) 15%,
+        var(--factorio-panel) 100%
+    );
+    border-bottom: 1px solid var(--factorio-border-dark);
+    color: var(--factorio-text-cream);
+}
+
+.modal-title {
+    color: var(--factorio-text-cream);
+    text-transform: uppercase;
+}
+
+.modal-body {
+    background-color: var(--factorio-panel);
+    color: var(--factorio-text);
+}
+
+.modal-footer {
+    background-color: var(--factorio-panel);
+    border-top: 1px solid var(--factorio-border);
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+/* Text Colors */
+.text-muted {
+    color: var(--factorio-text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--factorio-text-secondary) !important;
+}
+
+.text-danger {
+    color: var(--factorio-red) !important;
+}
+
+.text-success {
+    color: var(--factorio-green) !important;
+}
+
+.text-warning {
+    color: var(--factorio-orange) !important;
+}
+
+.text-info {
+    color: var(--factorio-link) !important;
+}
+
+/* Horizontal Rule */
+hr {
+    border-color: var(--factorio-border);
+    opacity: 1;
+}
+
+/* List Groups */
+.list-group-item {
+    background-color: var(--factorio-panel);
+    border-color: var(--factorio-border);
+    color: var(--factorio-text);
+}
+
+.list-group-item:hover {
+    background-color: var(--factorio-panel-lighter);
+}
+
+.list-group-item.active {
+    background-color: var(--factorio-orange);
+    border-color: var(--factorio-orange);
+}
+
+/* Pagination */
+.page-link {
+    background-color: var(--factorio-panel);
+    border-color: var(--factorio-border);
+    color: var(--factorio-link);
+}
+
+.page-link:hover {
+    background-color: var(--factorio-panel-lighter);
+    border-color: var(--factorio-border);
+    color: var(--factorio-link-hover);
+}
+
+.page-item.active .page-link {
+    background-color: var(--factorio-orange);
+    border-color: var(--factorio-orange);
+    color: var(--factorio-text);
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--factorio-panel-dark);
+    border-color: var(--factorio-border);
+    color: var(--factorio-disabled);
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+    background-color: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    padding: 0.75rem 1rem;
+}
+
+.breadcrumb-item a {
+    color: var(--factorio-link);
+}
+
+.breadcrumb-item.active {
+    color: var(--factorio-text-cream);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--factorio-border);
+}
+
+/* Progress Bars */
+.progress {
+    background-color: var(--factorio-panel-dark);
+    border: 1px solid var(--factorio-border);
+    border-radius: 0;
+}
+
+.progress-bar {
+    background-color: var(--factorio-orange);
+}
+
+/* Tooltips */
+.tooltip-inner {
+    background-color: var(--factorio-panel);
+    color: var(--factorio-text);
+    border: 1px solid var(--factorio-border);
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before,
+.tooltip.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+    border-top-color: var(--factorio-panel);
+}
+
+/* Badges */
+.badge {
+    border-radius: 0;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge.bg-primary {
+    background-color: var(--factorio-orange) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--factorio-button-bg) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--factorio-green) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--factorio-red) !important;
+}
+
+.badge.bg-warning {
+    background-color: var(--factorio-orange) !important;
+    color: var(--factorio-text) !important;
+}
+
+.badge.bg-info {
+    background-color: var(--factorio-link) !important;
+}
+
+/* Sections - Generic container theming */
+section {
+    color: var(--factorio-text);
+}
+
+/* === LAYOUT UTILITIES (Bootstrap Replacements) === */
+
+/* Grid System - CSS Grid for proper gap handling */
+.row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+}
+
+.row:last-child {
+    margin-bottom: 0;
+}
+
+/* Column spans - stretch children to fill */
+.col, [class*="col-"] {
+    display: flex;
+    flex-direction: column;
+}
+
+.col { grid-column: span 12; }
+.col-1 { grid-column: span 1; }
+.col-2 { grid-column: span 2; }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+.col-5 { grid-column: span 5; }
+.col-6 { grid-column: span 6; }
+.col-7 { grid-column: span 7; }
+.col-8 { grid-column: span 8; }
+.col-9 { grid-column: span 9; }
+.col-10 { grid-column: span 10; }
+.col-11 { grid-column: span 11; }
+.col-12 { grid-column: span 12; }
+
+/* Mobile first: stack columns by default */
+.col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-md-12,
+.col-lg-3, .col-lg-4, .col-lg-6, .col-lg-8, .col-lg-9 {
+    grid-column: span 12;
+}
+
+/* Responsive grid (md breakpoint) */
+@media (min-width: 768px) {
+    .col-md-3 { grid-column: span 3; }
+    .col-md-4 { grid-column: span 4; }
+    .col-md-6 { grid-column: span 6; }
+    .col-md-8 { grid-column: span 8; }
+    .col-md-12 { grid-column: span 12; }
+}
+
+/* Responsive grid (lg breakpoint) */
+@media (min-width: 992px) {
+    .col-lg-3 { grid-column: span 3; }
+    .col-lg-4 { grid-column: span 4; }
+    .col-lg-6 { grid-column: span 6; }
+    .col-lg-8 { grid-column: span 8; }
+    .col-lg-9 { grid-column: span 9; }
+}
+
+/* Spacing Utilities */
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+.mt-0 { margin-top: 0 !important; }
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
+.me-1 { margin-right: 0.25rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.me-3 { margin-right: 1rem !important; }
+
+.ms-1 { margin-left: 0.25rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.ms-3 { margin-left: 1rem !important; }
+
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.my-2 { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+
+.p-0 { padding: 0 !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 1rem !important; }
+.p-4 { padding: 1.5rem !important; }
+.px-4 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+
+/* Flexbox Utilities */
+.d-flex { display: flex !important; }
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-start { align-items: flex-start !important; }
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+
+/* Width Utilities */
+.w-100 { width: 100% !important; }
+.w-50 { width: 50% !important; }
+.w-auto { width: auto !important; }
+
+/* Text Utilities */
+.text-center { text-align: center !important; }
+.text-start { text-align: left !important; }
+.text-end { text-align: right !important; }
+.fw-bold { font-weight: bold !important; }
+.fs-5 { font-size: 1.25rem !important; }
+.fs-6 { font-size: 1rem !important; }
+
+/* Small Button Variant */
+.btn-sm {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.btn-lg {
+    font-size: 1.1rem !important;
+    padding: 1rem 2rem !important;
+}
+
+/* Form Floating Labels */
+.form-floating {
+    position: relative;
+}
+
+.form-floating > input,
+.form-floating > textarea,
+.form-floating > select {
+    height: calc(3.5rem + 2px);
+    padding: 1rem 0.75rem;
+}
+
+.form-floating > label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    padding: 1rem 0.75rem;
+    pointer-events: none;
+    transform-origin: 0 0;
+    transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
+    color: var(--factorio-text-muted);
+}
+
+.form-floating > input:focus ~ label,
+.form-floating > input:not(:placeholder-shown) ~ label,
+.form-floating > textarea:focus ~ label,
+.form-floating > textarea:not(:placeholder-shown) ~ label {
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+    color: var(--factorio-orange);
+}
+
+/* Checkbox styling */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+}
+
+.form-check-label {
+    margin: 0;
+}
+
+/* Checkbox styling */
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Tab Navigation */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--factorio-border);
+    padding-bottom: 0.5rem;
+}
+
+.tabs button {
+    background: var(--factorio-panel);
+    border: 1px solid var(--factorio-border);
+    color: var(--factorio-text);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tabs button:hover {
+    background: var(--factorio-panel-lighter);
+}
+
+.tabs button.tab-active {
+    background: var(--factorio-orange);
+    border-color: var(--factorio-orange);
+    color: var(--factorio-text);
+}
+
+/* Manage page layout */
+.manage-nav {
+    width: 100%;
+}
+
+.manage-nav .nav {
+    display: flex;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.manage-nav .nav-item {
+    list-style: none;
+}
+
+/* Inactive nav buttons: secondary/gray Factorio button */
+.manage-nav .nav-link {
+    display: inline-block;
+    background: var(--factorio-button-bg);
+    color: var(--factorio-text);
+    border: 1px solid var(--factorio-border-button);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 3px solid var(--factorio-button-secondary-shadow);
+    border-radius: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    text-decoration: none;
+}
+
+/* Inactive hover */
+.manage-nav .nav-link:hover {
+    background: var(--factorio-button-bg-hover);
+    color: var(--factorio-text);
+    text-decoration: none;
+    border-bottom-color: var(--factorio-button-secondary-shadow);
+}
+
+/* Inactive press */
+.manage-nav .nav-link:active {
+    background: var(--factorio-button-bg);
+    border-bottom-width: 1px;
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.3);
+    transform: translateY(2px);
+}
+
+/* Active nav button: orange Factorio primary button */
+.manage-nav .nav-link.active {
+    background: linear-gradient(to bottom,
+        var(--factorio-orange-light) 0%,
+        var(--factorio-orange) 50%,
+        var(--factorio-orange-dark) 100%
+    );
+    color: var(--factorio-text);
+    border: 1px solid var(--factorio-border-button);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 3px solid var(--factorio-button-shadow);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    cursor: default;
+}
+
+/* Active hover: no dramatic change */
+.manage-nav .nav-link.active:hover {
+    background: linear-gradient(to bottom,
+        var(--factorio-orange-light) 0%,
+        var(--factorio-orange) 50%,
+        var(--factorio-orange-dark) 100%
+    );
+    border-bottom-color: var(--factorio-button-shadow);
+}
+
+/* Active press: no push-down (already on this page) */
+.manage-nav .nav-link.active:active {
+    transform: none;
+    border-bottom-width: 3px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.manage-content {
+    width: 100%;
+    text-align: left;
+}
+
+/* Override card-body center alignment for manage pages */
+.manage-card .card-body {
+    text-align: left !important;
+    align-items: stretch;
 }
 
 /* Responsive */
@@ -409,7 +1122,21 @@ footer p {
         font-size: 1rem;
     }
 
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
     .card {
         padding: 1rem;
+    }
+
+    .manage-nav .nav {
+        gap: 0.35rem;
+    }
+
+    .manage-nav .nav-link {
+        font-size: 0.78rem;
+        padding: 0.4rem 0.75rem;
     }
 }

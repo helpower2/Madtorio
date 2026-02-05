@@ -1,0 +1,314 @@
+@page "/admin/mod-requests"
+@using Madtorio.Services
+@using Madtorio.Data.Models
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject IModRequestService ModRequestService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Manage Mod Requests - Admin</PageTitle>
+
+<h1>Manage Mod Requests</h1>
+
+@if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="alert @(statusMessage.StartsWith("Error") ? "alert-danger" : "alert-success") mb-3">
+        @statusMessage
+    </div>
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Vote Management</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        @if (lastVoteReset.HasValue)
+                        {
+                            <p class="mb-0">
+                                <strong>Last vote reset:</strong> @lastVoteReset.Value.ToString("MMMM dd, yyyy 'at' HH:mm UTC")
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="mb-0">
+                                <strong>Votes have never been reset</strong>
+                            </p>
+                        }
+                    </div>
+                    @if (showResetConfirmation)
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-warning">Are you sure? This will clear ALL votes.</span>
+                            <button class="btn btn-danger" @onclick="ConfirmResetVotes" disabled="@isProcessing">
+                                @if (isProcessing)
+                                {
+                                    <span>Resetting...</span>
+                                }
+                                else
+                                {
+                                    <span>Yes, Reset All Votes</span>
+                                }
+                            </button>
+                            <button class="btn btn-secondary" @onclick="() => showResetConfirmation = false" disabled="@isProcessing">
+                                Cancel
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <button class="btn" @onclick="() => showResetConfirmation = true">
+                            Reset All Votes
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tabs mb-3">
+    <button class="@(activeFilter == null ? "tab-active" : "")" @onclick="@(() => SetFilter(null))">
+        All (@allRequests.Count)
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Pending ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Pending))">
+        Pending (@allRequests.Count(r => r.Status == ModRequestStatus.Pending))
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Approved ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Approved))">
+        Approved (@allRequests.Count(r => r.Status == ModRequestStatus.Approved))
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Installed ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Installed))">
+        Installed (@allRequests.Count(r => r.Status == ModRequestStatus.Installed))
+    </button>
+    <button class="@(activeFilter == ModRequestStatus.Rejected ? "tab-active" : "")" @onclick="@(() => SetFilter(ModRequestStatus.Rejected))">
+        Rejected (@allRequests.Count(r => r.Status == ModRequestStatus.Rejected))
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="card">
+        <div class="card-body text-center">
+            <p>Loading mod requests...</p>
+        </div>
+    </div>
+}
+else if (!filteredRequests.Any())
+{
+    <div class="card">
+        <div class="card-body text-center">
+            <p class="text-muted">No mod requests found.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">Thumb</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Requests</th>
+                    <th style="text-align: center;">Votes</th>
+                    <th>Requested By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var request in filteredRequests)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(request.ThumbnailUrl))
+                            {
+                                <img src="@request.ThumbnailUrl" alt="" style="width: 50px; height: 50px; object-fit: contain;" />
+                            }
+                        </td>
+                        <td>
+                            <a href="@request.ModUrl" target="_blank" title="@request.ModTitle">
+                                @TruncateText(request.ModTitle, 30)
+                            </a>
+                        </td>
+                        <td>@(request.Author ?? "-")</td>
+                        <td>
+                            <select class="form-select form-select-sm" style="width: auto;"
+                                    value="@request.Status"
+                                    @onchange="@(e => UpdateStatus(request.Id, Enum.Parse<ModRequestStatus>(e.Value?.ToString() ?? "Pending")))">
+                                @foreach (var status in Enum.GetValues<ModRequestStatus>())
+                                {
+                                    <option value="@status" selected="@(request.Status == status)">@status</option>
+                                }
+                            </select>
+                        </td>
+                        <td style="text-align: center;">@request.RequestCount</td>
+                        <td style="text-align: center;">@request.Votes.Count</td>
+                        <td>@request.RequestedBy</td>
+                        <td>
+                            @if (deleteConfirmId == request.Id)
+                            {
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDelete(request.Id)">
+                                    Confirm
+                                </button>
+                                <button class="btn btn-secondary btn-sm" @onclick="() => deleteConfirmId = null">
+                                    Cancel
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary btn-sm" @onclick="() => deleteConfirmId = request.Id">
+                                    Delete
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="mt-4">
+    <a href="/admin" class="btn btn-secondary">Back to Admin Panel</a>
+</div>
+
+@code {
+    private List<ModRequest> allRequests = new();
+    private List<ModRequest> filteredRequests = new();
+    private ModRequestStatus? activeFilter;
+    private DateTime? lastVoteReset;
+    private bool isLoading = true;
+    private bool isProcessing;
+    private bool showResetConfirmation;
+    private int? deleteConfirmId;
+    private string? statusMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            allRequests = await ModRequestService.GetAllRequestsAsync();
+            lastVoteReset = await ModRequestService.GetLastVoteResetDateAsync();
+            ApplyFilter();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SetFilter(ModRequestStatus? status)
+    {
+        activeFilter = status;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        if (activeFilter.HasValue)
+        {
+            filteredRequests = allRequests.Where(r => r.Status == activeFilter.Value).ToList();
+        }
+        else
+        {
+            filteredRequests = allRequests.ToList();
+        }
+    }
+
+    private async Task UpdateStatus(int id, ModRequestStatus status)
+    {
+        statusMessage = null;
+        try
+        {
+            var success = await ModRequestService.UpdateStatusAsync(id, status);
+            if (success)
+            {
+                statusMessage = "Status updated successfully";
+                await LoadData();
+            }
+            else
+            {
+                statusMessage = "Error: Could not update status";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task ConfirmDelete(int id)
+    {
+        statusMessage = null;
+        try
+        {
+            var success = await ModRequestService.DeleteRequestAsync(id);
+            if (success)
+            {
+                statusMessage = "Mod request deleted successfully";
+                deleteConfirmId = null;
+                await LoadData();
+            }
+            else
+            {
+                statusMessage = "Error: Could not delete mod request";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task ConfirmResetVotes()
+    {
+        statusMessage = null;
+        isProcessing = true;
+
+        try
+        {
+            var success = await ModRequestService.ResetAllVotesAsync();
+            if (success)
+            {
+                statusMessage = "All votes have been reset successfully";
+                showResetConfirmation = false;
+                await LoadData();
+            }
+            else
+            {
+                statusMessage = "Error: Could not reset votes";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private static string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+            return text;
+        return text.Substring(0, maxLength) + "...";
+    }
+}

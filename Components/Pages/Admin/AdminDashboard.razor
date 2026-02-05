@@ -68,10 +68,12 @@ else
                 <div class="card-header">
                     <h3>Quick Actions</h3>
                 </div>
-                <div class="card-body">
-                    <a href="/admin/upload" class="btn" style="margin-right: 0.5rem;">Upload New Save</a>
-                    <a href="/admin/manage" class="btn btn-secondary" style="margin-right: 0.5rem;">Manage Saves</a>
-                    <a href="/admin/rules" class="btn btn-secondary">Manage Rules</a>
+                <div class="card-body quick-actions">
+                    <a href="/admin/upload" class="btn me-2">Upload New Save</a>
+                    <a href="/admin/manage" class="btn btn-secondary me-2">Manage Saves</a>
+                    <a href="/admin/rules" class="btn btn-secondary me-2">Manage Rules</a>
+                    <a href="/admin/users" class="btn btn-secondary me-2">Manage Users</a>
+                    <a href="/admin/mod-requests" class="btn btn-secondary">Manage Mod Requests</a>
                 </div>
             </div>
         </div>
@@ -126,10 +128,10 @@ else
                     }
                     else
                     {
-                        <ul style="list-style: none; padding: 0;">
+                        <ul class="p-0" style="list-style: none;">
                             @foreach (var kvp in stats.PageViewsByPath.OrderByDescending(p => p.Value))
                             {
-                                <li style="margin-bottom: 0.5rem;">
+                                <li class="mb-2">
                                     <strong>@kvp.Key</strong>: <span class="text-orange">@kvp.Value</span> views
                                 </li>
                             }

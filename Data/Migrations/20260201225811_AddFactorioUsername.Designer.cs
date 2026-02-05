@@ -3,16 +3,19 @@ using System;
 using Madtorio.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Madtorio.Migrations
+namespace Madtorio.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260201225811_AddFactorioUsername")]
+    partial class AddFactorioUsername
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.2");
@@ -35,6 +38,9 @@ namespace Madtorio.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("FactorioUsername")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -109,117 +115,6 @@ namespace Madtorio.Migrations
                     b.HasIndex("SaveFileId");
 
                     b.ToTable("DownloadLogs");
-                });
-
-            modelBuilder.Entity("Madtorio.Data.Models.ModRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Author")
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Category")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("DownloadsCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ModName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ModTitle")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ModUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("RequestCount")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("RequestedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Summary")
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ThumbnailUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ModRequests");
-                });
-
-            modelBuilder.Entity("Madtorio.Data.Models.ModRequestLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ModRequestId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModRequestId");
-
-                    b.ToTable("ModRequestLogs");
-                });
-
-            modelBuilder.Entity("Madtorio.Data.Models.ModRequestVote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ModRequestId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("VotedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModRequestId", "Username")
-                        .IsUnique();
-
-                    b.ToTable("ModRequestVotes");
                 });
 
             modelBuilder.Entity("Madtorio.Data.Models.PageView", b =>
@@ -548,28 +443,6 @@ namespace Madtorio.Migrations
                     b.Navigation("SaveFile");
                 });
 
-            modelBuilder.Entity("Madtorio.Data.Models.ModRequestLog", b =>
-                {
-                    b.HasOne("Madtorio.Data.Models.ModRequest", "ModRequest")
-                        .WithMany()
-                        .HasForeignKey("ModRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ModRequest");
-                });
-
-            modelBuilder.Entity("Madtorio.Data.Models.ModRequestVote", b =>
-                {
-                    b.HasOne("Madtorio.Data.Models.ModRequest", "ModRequest")
-                        .WithMany("Votes")
-                        .HasForeignKey("ModRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ModRequest");
-                });
-
             modelBuilder.Entity("Madtorio.Data.Models.Rule", b =>
                 {
                     b.HasOne("Madtorio.Data.Models.RuleCategory", "Category")
@@ -681,11 +554,6 @@ namespace Madtorio.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Madtorio.Data.Models.ModRequest", b =>
-                {
-                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("Madtorio.Data.Models.RuleCategory", b =>

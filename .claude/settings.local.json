@@ -10,7 +10,15 @@
       "Bash(dotnet ef database update:*)",
       "Bash(timeout /t 5 /nobreak)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "WebSearch",
+      "WebFetch(domain:mods.factorio.com)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(wc:*)",
+      "mcp__plugin_playwright_playwright__browser_resize",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_hover",
+      "mcp__plugin_playwright_playwright__browser_click"
     ]
   }
 }
