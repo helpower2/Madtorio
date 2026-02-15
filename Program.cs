@@ -181,4 +181,7 @@ app.MapAdditionalIdentityEndpoints();
 // Map controller endpoints for downloads API
 app.MapControllers();
 
+// Health check endpoint for uptime monitoring (e.g., UptimeRobot)
+app.MapGet("/health", () => Results.Ok("healthy"));
+
 app.Run();
