@@ -148,6 +148,11 @@ else
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
+// Health check endpoint - must be before auth/antiforgery middleware
+app.MapGet("/health", () => Results.Ok("healthy"))
+    .AllowAnonymous()
+    .DisableAntiforgery();
+
 // Enable forwarded headers and WebSockets for Docker/reverse proxy
 app.UseForwardedHeaders();
 app.UseWebSockets();
@@ -180,8 +185,5 @@ app.MapAdditionalIdentityEndpoints();
 
 // Map controller endpoints for downloads API
 app.MapControllers();
-
-// Health check endpoint for uptime monitoring (e.g., UptimeRobot)
-app.MapGet("/health", () => Results.Ok("healthy"));
 
 app.Run();
